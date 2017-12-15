@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Example Document Symbols{% endblock %}
+
+{% block content %}
+<div>
+    <form id='undel-query-input' action='/' method="POST">
+    <div class="form-group">
+        <label for="undl-query">Query</label>
+        <input type="text" class="form-control" id="undl-query" name="undl-query">
+        <small id="undel-query-help" class="form-text text-muted">
+  Enter Query
+        </small>   
+    </div>
+        <button type="submit" class="btn btn-primary" id="undl-query-button">Submit</button>
+    </form>
+</div>
+
+
+{% endblock %}

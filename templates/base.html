@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"> 
+ <head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+     <meta name="description" content="">
+     <meta name="author" content="Andrew Lee">
+ 
+     <title>UNDL Proxy</title>
+ 
+     <!-- Bootstrap core CSS -->
+     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+     
+     <!-- Local CSS -->
+     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery.min.js"></script>
+
+    <!-- Normalize css  -->
+    <link rel="stylesheet" type="text/css" href="/static/css/normalize.css">
+
+    <!-- Bootstrap JS -->
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"> </script>
+
+    <script type=text/javascript>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+
+    <!-- local index.js -->
+    <script type="text/javascript" src="/static/js/index.js"> </script>
+ 
+ </head>
+<body>
+    {% block content %}
+
+    {% endblock %}
+</body>
+</html>
