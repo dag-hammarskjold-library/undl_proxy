@@ -4,8 +4,27 @@
 
 {% block content %}
 
-{% for k, v in context.items() %}
-    <span>{{k}} {{v}}</span><br>
-{% endfor %}
+<div>
+    Original Url: <a href={{context.query}} target="#">{{context.query}}</a>
+</div>
 
+<br />
+<br />
+<div>
+    {% for record in context.result %}
+    <hr>
+    <div>
+        {% for key in record.keys() %}
+            {{key}}
+        <ul>
+            {% if record[key] %}
+                <li>
+                    {{ record[key] }} 
+                </li>
+            {% endif %}
+        </ul>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

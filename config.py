@@ -10,6 +10,8 @@ class Config(object):
         ^unbist\s([a-zA-Z ]+)\s\(DHLAUTH\)\d+$|
         ([a-zA-Z ]+)\sunbist\s\(DHLAUTH\)\d+$""", re.X)
     RELDOC_RE = re.compile(r'^([a-zA-Z0-9\/]+)(\(\d{4}\))$')
+    BASE_URL = 'https://digitallibrary.un.org'
+    PATH = '/search'
 
 
 class ProductionConfig(Config):
