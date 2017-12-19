@@ -2,8 +2,6 @@ from flask import Flask, render_template, request
 from logging import getLogger
 from sqlalchemy.exc import SQLAlchemyError
 import json
-from .models import DocumentMetadata
-from .db import db_session
 from .base_page import BasePage
 from .config import DevelopmentConfig
 
