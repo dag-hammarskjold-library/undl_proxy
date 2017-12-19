@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from logging import getLogger
-from sqlalchemy.exc import SQLAlchemyError
 import json
+from urllib.parse import parse_qs
 from .base_page import BasePage
 from .config import DevelopmentConfig
 
@@ -9,15 +9,6 @@ app = Flask(__name__)
 logger = getLogger(__name__)
 
 app.config.from_object(DevelopmentConfig)
-
-
-def session_commit(session, msg):
-    session.flush()
-    try:
-        session.commit()
-    except SQLAlchemyError as e:
-        print("Caught Commit error in {}: {}".format(msg, e))
-        session.rollback()
 
 
 @app.errorhandler(404)
@@ -29,7 +20,10 @@ def page_not_found(e):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == "POST":
-        pass
+        raw_query = request.form.get('undl-query', None)
+        res = parse_qs(raw_query)
+        return render_template('result.html', context=res)
+
     elif request.method == 'GET':
         return render_template('index.html')
 

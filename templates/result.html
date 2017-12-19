@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Example Document Symbols{% endblock %}
+
+{% block content %}
+
+{% for k, v in context.items() %}
+    <span>{{k}} {{v}}</span><br>
+{% endfor %}
+
+{% endblock %}
