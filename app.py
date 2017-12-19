@@ -17,8 +17,8 @@ subject_re = re.compile(r"""
         ^unbist\s([a-zA-Z ]+)\s\(DHLAUTH\)\d+$|
         ([a-zA-Z ]+)\sunbist\s\(DHLAUTH\)\d+$""", re.X)
 reldoc_re = re.compile(r'^([a-zA-Z0-9\/]+)(\(\d{4}\))$')
-base_url = 'https://digitallibrary.un.org'
-path = '/search'
+base_url = 'http://dag.un.org'
+path = '/docs'
 logger = getLogger(__name__)
 
 app.config.from_object(DevelopmentConfig)
@@ -92,8 +92,10 @@ def _get_marc_metadata(url):
         'subjects': parser.subjects(),
         'summary': parser.summary(),
         'title': parser.title(),
-        'title_statement': parser.title_statement()
+        'title_statement': parser.title_statement(),
+        'voting_record': parser.voting_record()
     }
+    print(ctx['voting_record'])
     return ctx
 
 
@@ -103,9 +105,7 @@ class PageNotFoundException(Exception):
 
 class MARCXmlParse:
     '''
-        given a url, e.g.
-            https://digitallibrary.un.org/record/696939/export/xm
-        parse the xml via pymarc.parse_xml_to_array
+        given an XML record
         use pymarc to pull out fields:
             author
             notes
@@ -149,7 +149,7 @@ class MARCXmlParse:
                 if s:
                     search_string = parse.quote_plus(s)
                     query = "f1=subject&as=1&sf=title&so=a&rm=&m1=p&p1={}&ln=en".format(search_string)
-                    subjs[s] = base_url + path + '?' + query
+                    subjs[s] = "https://digitallibrary.un.org/search?ln=en&" + query
         logger.debug(subjs)
         return subjs
 
@@ -183,10 +183,10 @@ class MARCXmlParse:
             m = reldoc_re.match(rel_doc.value())
             if m:
                 rel_string = m.group(1) + '%20' + m.group(2)
-                docs[rel_doc.value()] = request.url_root + 'symbol/{}'.format(rel_string)
+                docs[rel_doc.value()] = rel_string
             else:
-                docs[rel_doc.value()] = request.url_root + 'symbol/{}'.format(rel_doc.value())
-        return docs
+                docs[rel_doc.value()] = rel_doc.value()
+        return docs.values
 
     def summary(self):
         return self.record.summary()
@@ -197,3 +197,9 @@ class MARCXmlParse:
     def imprint(self):
         for f in self.record.imprint():
             return f.value()
+
+    def voting_record(self):
+        votes = []
+        for vote in self.record.voting_record():
+            votes.append(Field.format_field(vote))
+        return votes

@@ -17,9 +17,21 @@
         {% for key in record.keys() %}
             {{key}}
         <ul>
-            {% if record[key] %}
+            {% if record[key] is mapping %}
+                {% for k, v in record[key].items() %}
                 <li>
-                    {{ record[key] }} 
+                    {{ k }} -> {{ v }}
+                </li>
+                {% endfor %}
+            {% elif record[key] is iterable and record[key] is not string %}
+                {% for k in record[key] %}
+                <li>
+                    {{ k }}
+                </li>
+                {% endfor %}
+            {% else %}
+                <li>
+                    {{ record[key] }}
                 </li>
             {% endif %}
         </ul>
