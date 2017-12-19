@@ -34,6 +34,8 @@ def page_not_found(e):
 def index():
     if request.method == "POST":
         raw_query = request.form.get('undl-query', None)
+        # num_records = request.form.get('num-records', None)
+        # display_fields = request.form.get('display-fields', None)
         query = ''
         records = 10
         metadata = []
@@ -88,7 +90,7 @@ def _get_marc_metadata(url):
         'notes': parser.notes(),
         'publisher': parser.publisher(),
         'pubyear': parser.pubyear(),
-        'related_documents': parser.related_documents(request),
+        'related_documents': parser.related_documents(),
         'subjects': parser.subjects(),
         'summary': parser.summary(),
         'title': parser.title(),
@@ -169,7 +171,7 @@ class MARCXmlParse:
     def document_symbol(self):
         return self.record.document_symbol()
 
-    def related_documents(self, request):
+    def related_documents(self):
         '''
         tricky edge case:
         S/RES/2049(2012) is a valid symbol
@@ -179,14 +181,14 @@ class MARCXmlParse:
         '''
         docs = {}
         for rel_doc in self.record.related_documents():
-            logger.debug("Related Doc: {}".format(rel_doc.value()))
+            app.logger.debug("Related Doc: {}".format(rel_doc.value()))
             m = reldoc_re.match(rel_doc.value())
             if m:
                 rel_string = m.group(1) + '%20' + m.group(2)
-                docs[rel_doc.value()] = rel_string
+                docs[rel_doc.value()] = base_url + path + '/{}'.format(rel_string)
             else:
-                docs[rel_doc.value()] = rel_doc.value()
-        return docs.values
+                docs[rel_doc.value()] = base_url + path + '/{}'.format(rel_doc.value())
+        return docs
 
     def summary(self):
         return self.record.summary()
