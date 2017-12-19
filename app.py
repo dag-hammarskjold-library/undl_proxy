@@ -34,8 +34,8 @@ def page_not_found(e):
 def index():
     if request.method == "POST":
         raw_query = request.form.get('undl-query', None)
-        # num_records = request.form.get('num-records', None)
-        # display_fields = request.form.get('display-fields', None)
+        num_records = request.form.get('num-records', None)
+        display_fields = request.form.get('display-fields', None)
         query = ''
         records = 10
         metadata = []
@@ -97,7 +97,6 @@ def _get_marc_metadata(url):
         'title_statement': parser.title_statement(),
         'voting_record': parser.voting_record()
     }
-    print(ctx['voting_record'])
     return ctx
 
 
