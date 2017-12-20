@@ -11,6 +11,15 @@
 <br />
 <br />
 <div>
+    <button class='btn-primary' id='results-xml'>XML</button>
+    <button class="btn-primary" id='results-json'>JSON</button>
+</div>
+
+<div class="hidden" id="context-result">
+    {{ context.pretty }}
+</div>
+
+<div>
     {% for record in context.result %}
     <hr>
     <div>
@@ -39,4 +48,28 @@
     </div>
     {% endfor %}
 </div>
+
+
+<div class="modal fade" id="document_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="modal-lable">Search JSON</h4>
+            </div>
+            <div class="modal-body">
+                <pre id="modal-document-data">
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button class="clipboard" data-clipboard-target="#modal-document-data">
+                     Copy to Clipboard
+                </button>
+                <button class="clipboard" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
+

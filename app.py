@@ -3,6 +3,7 @@ from logging import getLogger
 from pymarc import marcxml
 from pymarc.field import Field
 import re
+import json
 from io import BytesIO
 from urllib import parse
 from urllib.error import HTTPError, URLError
@@ -35,9 +36,10 @@ def index():
     if request.method == "POST":
         raw_query = request.form.get('undl-query', None)
         num_records = request.form.get('num-records', None)
-        display_fields = request.form.get('display-fields', None)
+        display_fields = request.form.getlist('display-fields', None)
+        print(display_fields)
         query = ''
-        records = 10
+        records = num_records
         metadata = []
         m = re.search(r'of=([a-zA-Z]{2,})', raw_query)
         if m:
@@ -52,10 +54,64 @@ def index():
         collection = _fetch_metadata(query)
         for record in collection:
             metadata.append(_get_marc_metadata(record))
-        return render_template('result.html', context={"result": metadata, "query": raw_query})
+        pretty = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
+        return render_template('result.html', context={"pretty": pretty, "result": metadata, "query": raw_query})
 
     elif request.method == 'GET':
         return render_template('index.html')
+
+
+@app.route('/search', defaults={'path': ''})
+@app.route('/search/<path:undl_url>')
+def index2(undl_url):
+    # undl_url = request.args.get('undl_url', None)
+    p = request.args.get('p', None)  # search Pattern
+    c = request.args.getlist('c', None)  # collection list
+    f = request.args.get('f', None)  # field to search within
+    rg = request.args.get('rg', None)  # records in groups of
+    sf = request.args.get('sf', None)  # sort field
+    so = request.args.get('so', None)  # sort order
+    rm = request.args.get('rm', None)  # ranking method
+    of = request.args.get('of', None)  # output format
+    ot = request.args.get('ot', None)  # output only these MARC tags
+    em = request.args.get('em', None)  # output only part of the page.
+    sc = request.args.get('sc', None)  # split by collection
+    jrec = request.args.get('jrec', None)  # jump to record
+    recid = request.args.get('recid', None)  # record id
+    d1 = request.args.get('d1', None)  # date 1 as YYYY-mm-dd HH:mm:DD
+    d1y = request.args.get('d1y', None)  # date 1 year
+    d1m = request.args.get('d1m', None)  # date 1 month
+    d1d = request.args.get('d1d', None)  # date 1 day
+    d2 = request.args.get('d2', None)  # date 2 as YYYY-mm-dd HH:mm:DD
+    d2y = request.args.get('d2y', None)  # date 2 year
+    d2m = request.args.get('d2m', None)  # date 2 month
+    d2d = request.args.get('d2d', None)  # date 2 day
+    dt = request.args.get('dt', None)  # date type -- c=creation, m=modification
+
+    # print("Url: {}".format(url))
+    print("Pattern: {}".format(p))
+    print("Collection: {}".format(c))
+    print("Field: {}".format(f))
+    print("Records in Group: {}".format(rg))
+    print("Sort Field: {}".format(sf))
+    print("Sort Order: {}".format(so))
+    print("Ranking Method: {}".format(rm))
+    print("Output Format: {}".format(of))
+    print("Output Tags: {}".format(ot))
+    print("Part of the page: {}".format(em))
+    print("Split Collection: {}".format(sc))
+    print("Jump to Record: {}".format(jrec))
+    print("Record ID: {}".format(recid))
+    print("Date 1: {}".format(d1))
+    print("Date 1 year: {}".format(d1y))
+    print("Date 1 month: {}".format(d1m))
+    print("Date 1 day: {}".format(d1d))
+    print("Date 2: {}".format(d2))
+    print("Date 2 year: {}".format(d2y))
+    print("Date 2 month: {}".format(d2m))
+    print("Date 2 day: {}".format(d2d))
+    print("Date Type: {}".format(dt))
+    return undl_url
 
 
 def _fetch_metadata(url):
@@ -75,12 +131,12 @@ def _fetch_metadata(url):
         return r
 
 
-def _get_marc_metadata(url):
+def _get_marc_metadata(record):
     '''
     use the xml format of the page
     to nab metadata
     '''
-    parser = MARCXmlParse(url)
+    parser = MARCXmlParse(record)
     ctx = {
         'agenda': parser.agenda(),
         'author': parser.author(),
