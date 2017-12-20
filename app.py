@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, abort
 from logging import getLogger
 from pymarc import marcxml
 from pymarc.field import Field
@@ -10,6 +10,11 @@ from urllib.error import HTTPError, URLError
 from urllib import request as req
 import ssl
 from .config import DevelopmentConfig
+from .models import SearchMetadata
+from .db import get_session
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError, InterfaceError
+
+session = get_session()
 
 app = Flask(__name__)
 subject_re = re.compile(r"""
@@ -29,6 +34,12 @@ app.config.from_object(DevelopmentConfig)
 def page_not_found(e):
     app.logger.error(e)
     return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def server_error(e):
+    app.logger.error(e)
+    return render_template('500.html'), 500
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -52,13 +63,36 @@ def index():
         else:
             query = query + "&rg={}".format(records)
         collection = _fetch_metadata(query)
+        search_md = session.query(SearchMetadata).filter_by(undl_url=query).first()
+        if not search_md:
+            try:
+                search_md = SearchMetadata(undl_url=query)
+                session.add(search_md)
+                session.commit()
+            except InterfaceError as ex:
+                "Interface error: {}".format(ex)
+                abort(500)
+
+            except (IntegrityError, SQLAlchemyError) as ex:
+                logger.error("Could not insert/update: {}".format(ex))
+                abort(500)
+
         for record in collection:
             metadata.append(_get_marc_metadata(record))
         pretty = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
         return render_template('result.html', context={"pretty": pretty, "result": metadata, "query": raw_query})
 
     elif request.method == 'GET':
-        return render_template('index.html')
+        record = request.args.get('record', None)
+        if record:
+            sm = session.query(SearchMetadata).get(record)
+            print(sm)
+            if sm:
+                return render_template("search_metadata.html", context={"obj": sm.to_dict()})
+            else:
+                return render_template('index.html')
+        else:
+            return render_template('index.html')
 
 
 @app.route('/search', defaults={'path': ''})
@@ -112,6 +146,16 @@ def index2(undl_url):
     print("Date 2 day: {}".format(d2d))
     print("Date Type: {}".format(dt))
     return undl_url
+
+
+@app.route("/list")
+def list_records():
+    context = {}
+    searches = session.query(SearchMetadata).all()
+    for search in searches:
+        context[search.undl_url] = search.to_dict()
+
+    return render_template("list.html", context=context)
 
 
 def _fetch_metadata(url):

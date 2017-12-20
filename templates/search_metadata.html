@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+{% for field, val in context.obj.items() %}
+<p>{{ field }} -> {{ val }} </p>
+{% endfor %}
+
+</div>
+{% endblock %}
