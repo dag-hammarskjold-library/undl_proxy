@@ -26,8 +26,9 @@
 
 <div>
     {% for record in context.result %}
-    <hr>
+    
     <p><h5>{{record.title}}</h5></p>
+    <hr>
     <div>
         {% for key in record.keys() %}
             {{key}}
@@ -68,9 +69,9 @@
                 </pre>
             </div>
             <div class="modal-footer">
-                <button class="clipboard" data-clipboard-target="#modal-document-data">
+                <!-- <button class="clipboard" data-clipboard-target="#modal-document-data">
                      Copy to Clipboard
-                </button>
+                </button> -->
                 <button class="clipboard" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -79,4 +80,3 @@
 
 
 {% endblock %}
-

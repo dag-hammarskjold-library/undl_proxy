@@ -1,18 +1,17 @@
-from flask import Flask, render_template, request, abort
+from .config import DevelopmentConfig
+from .db import get_session
+from .marc_xml import MARCXmlParse
+from .models import SearchMetadata
+from flask import Flask, render_template, request, abort, Response
+from io import BytesIO
 from logging import getLogger
 from pymarc import marcxml
-from pymarc.field import Field
-import re
-import json
-from io import BytesIO
-from urllib import parse
-from urllib.error import HTTPError, URLError
-from urllib import request as req
-import ssl
-from .config import DevelopmentConfig
-from .models import SearchMetadata
-from .db import get_session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, InterfaceError
+from urllib import request as req
+from urllib.error import HTTPError, URLError
+import json
+import re
+import ssl
 
 session = get_session()
 
@@ -45,19 +44,20 @@ def server_error(e):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == "POST":
+        # undl URL
         raw_query = request.form.get('undl-query', None)
         num_records = request.form.get('num-records', None)
         display_fields = request.form.getlist('display-fields', None)
         query = ''
         records = num_records
         metadata = []
-        # see if there is an output format
+        # see if there is an output format -- make sure we're getting MARCXML
         m = re.search(r'of=([a-zA-Z]{2,})', raw_query)
         if m:
             query = re.sub(r'of=([a-zA-Z]{2,})', "of=xm", raw_query)
         else:
             query = raw_query + "&of=xm"
-        # check num records in group
+        # check num records in group, set to 10 if not set by user
         m = re.search(r'rg=\d+', query)
         if m:
             query = re.sub(r'rg=\d+', "rg={}".format(records), query)
@@ -171,28 +171,60 @@ def list_records():
     return render_template("list.html", context=context)
 
 
+@app.route("/xml/")
+def show_xml():
+    rec_id = request.args.get('rec_id')
+    sm = session.query(SearchMetadata).get(int(rec_id))
+    if sm:
+        if sm.xml:
+            return Response(sm.xml, mimetype='text/xml')
+        else:
+            return "No XML for record {}".format(rec_id)
+    else:
+        return "Invalid Record ID"
+
+
+@app.route("/json/")
+def show_json():
+    rec_id = request.args.get('rec_id')
+    sm = session.query(SearchMetadata).get(int(rec_id))
+    if sm:
+        if sm.json:
+            return Response(sm.json, mimetype='text/json')
+        else:
+            return "No JSON for record {}".format(rec_id)
+    else:
+        return "Invalid Record ID"
+
+
 def _fetch_metadata(url):
+    """
+    @args: url, UNDL url given by user
+    raises: 500 error if url can not be retrieved
+    parse xml of response and return array of pymarc records
+    """
     try:
         resp = req.urlopen(url, context=ssl._create_unverified_context())
     except (HTTPError, URLError) as e:
-        print("Error: {}".format(e))
+        logger.error("Error: {}".format(e))
+        abort(500)
 
     if resp.status != 200:
-        print("Could not get {}, status: {}".format(url, resp.status))
+        logger.error("Could not get {}, status: {}".format(url, resp.status))
+        abort(500)
     else:
         raw_xml = resp.read()
         xml_doc = BytesIO(raw_xml)
         r = marcxml.parse_xml_to_array(xml_doc, False, 'NFC')
-        for record in r:
-            print(record.title())
-            print(record.document_symbol())
         return r
 
 
 def _get_marc_metadata_as_json(record, fields):
     '''
-    use the xml format of the page
-    to nab metadata
+    check what fields have been requested
+    for each field, set dictionary key to field name
+        set dictionary value to MARCXmlParse's value for name
+
     '''
     parser = MARCXmlParse(record)
     ctx = {}
@@ -212,6 +244,8 @@ def _get_marc_metadata_as_json(record, fields):
         ctx['publisher'] = parser.publisher()
     if 'pubyear' in fields:
         ctx['pubyear'] = parser.pubyear()
+    if 'pub_date' in fields:
+        ctx['pub_date'] = parser.pub_date()
     if 'related_documents' in fields:
         ctx['related_documents'] = parser.related_documents()
     if 'subjects' in fields:
@@ -224,27 +258,18 @@ def _get_marc_metadata_as_json(record, fields):
         ctx['title_statement'] = parser.title_statement()
     if 'voting_record' in fields:
         ctx['voting_record'] = parser.voting_record()
-    # else:
-    #     ctx = {
-    #         'agenda': parser.agenda(),
-    #         'author': parser.author(),
-    #         'authority_authors': parser.authority_authors(),
-    #         'document_symbol': parser.document_symbol(),
-    #         'imprint': parser.imprint(),
-    #         'notes': parser.notes(),
-    #         'publisher': parser.publisher(),
-    #         'pubyear': parser.pubyear(),
-    #         'related_documents': parser.related_documents(),
-    #         'subjects': parser.subjects(),
-    #         'summary': parser.summary(),
-    #         'title': parser.title(),
-    #         'title_statement': parser.title_statement(),
-    #         'voting_record': parser.voting_record()
-    #     }
+
     return ctx
 
 
 def _get_marc_metadata_as_xml(collection, fields):
+    """
+    create new XML doc
+    loop over all records in an array of pymarc records
+    check requested fields, for each field
+    create a new subtag
+
+    """
     from xml.etree import ElementTree as ET
     from xml.dom import minidom
 
@@ -294,6 +319,9 @@ def _get_marc_metadata_as_xml(collection, fields):
             pubyear = ET.SubElement(record, 'pubyear')
             pubyear.text = parser.pubyear()
 
+        if 'pub_date' in fields:
+            pubdate = ET.SubElement(record, 'pubdate')
+            pubdate.text = parser.pub_date()
         if 'related_documents' in fields:
             related_documents = ET.SubElement(record, 'related_documents')
             for doc in parser.related_documents():
@@ -324,7 +352,6 @@ def _get_marc_metadata_as_xml(collection, fields):
                 vote = ET.SubElement(voting_record, 'vote')
                 vote.text = elem
 
-    print(records)
     return prettify(records)
 
 
@@ -332,103 +359,106 @@ class PageNotFoundException(Exception):
     pass
 
 
-class MARCXmlParse:
-    '''
-        given an XML record
-        use pymarc to pull out fields:
-            author
-            notes
-            publisher
-            pubyear
-            subjects
-            title
-            document symbol
-            related documents
-    '''
-    def __init__(self, record):
-        self.record = record
+# class MARCXmlParse:
+#     '''
+#         given an XML record
+#         use pymarc to pull out fields:
+#             author
+#             notes
+#             publisher
+#             pubyear
+#             subjects
+#             title
+#             document symbol
+#             related documents
+#     '''
+#     def __init__(self, record):
+#         self.record = record
 
-    def author(self):
-        return self.record.author()
+#     def author(self):
+#         return self.record.author()
 
-    def authority_authors(self):
-        authors = []
-        for auth in self.record.authority_authors():
-            authors.append(Field.format_field(auth))
-        return authors
+#     def authority_authors(self):
+#         authors = []
+#         for auth in self.record.authority_authors():
+#             authors.append(Field.format_field(auth))
+#         return authors
 
-    def title(self):
-        return self.record.title()
+#     def title(self):
+#         return self.record.title()
 
-    def subjects(self):
-        subjs = {}
-        for sub in self.record.subjects():
-            logger.debug("Subject: {}".format(sub.value()))
-            m = subject_re.match(sub.value())
-            # kludge!
-            # want cleaner way to show subjects
-            if m:
-                s = m.group(1)
-                if not m.group(1):
-                    s = m.group(2)
-                    if not m.group(2):
-                        s = m.group(3)
-                        if not m.group(3):
-                            s = m.group(4)
-                if s:
-                    search_string = parse.quote_plus(s)
-                    query = "f1=subject&as=1&sf=title&so=a&rm=&m1=p&p1={}&ln=en".format(search_string)
-                    subjs[s] = "https://digitallibrary.un.org/search?ln=en&" + query
-        logger.debug(subjs)
-        return subjs
+#     def subjects(self):
+#         subjs = {}
+#         for sub in self.record.subjects():
+#             logger.debug("Subject: {}".format(sub.value()))
+#             m = subject_re.match(sub.value())
+#             # kludge!
+#             # want cleaner way to show subjects
+#             if m:
+#                 s = m.group(1)
+#                 if not m.group(1):
+#                     s = m.group(2)
+#                     if not m.group(2):
+#                         s = m.group(3)
+#                         if not m.group(3):
+#                             s = m.group(4)
+#                 if s:
+#                     search_string = parse.quote_plus(s)
+#                     query = "f1=subject&as=1&sf=title&so=a&rm=&m1=p&p1={}&ln=en".format(search_string)
+#                     subjs[s] = "https://digitallibrary.un.org/search?ln=en&" + query
+#         logger.debug(subjs)
+#         return subjs
 
-    def agenda(self):
-        # FIXME -- these are not showing up
-        return self.record.agenda()
+#     def agenda(self):
+#         # FIXME -- these are not showing up
+#         return self.record.agenda()
 
-    def notes(self):
-        return [note.value() for note in self.record.notes()]
+#     def notes(self):
+#         return [note.value() for note in self.record.notes()]
 
-    def publisher(self):
-        return self.record.publisher()
+#     def publisher(self):
+#         return self.record.publisher()
 
-    def pubyear(self):
-        return self.record.pubyear()
+#     def pubyear(self):
+#         return self.record.pubyear()
 
-    def document_symbol(self):
-        return self.record.document_symbol()
+#     def pub_date(self):
+#         return self.record.pub_date()
 
-    def related_documents(self):
-        '''
-        tricky edge case:
-        S/RES/2049(2012) is a valid symbol
-        S/RES/2273(2016) is NOT a valie symbol
-        but "S/RES/2273 (2016)" is a valid symbol
-        We want to try both?
-        '''
-        docs = {}
-        for rel_doc in self.record.related_documents():
-            app.logger.debug("Related Doc: {}".format(rel_doc.value()))
-            m = reldoc_re.match(rel_doc.value())
-            if m:
-                rel_string = m.group(1) + '%20' + m.group(2)
-                docs[rel_doc.value()] = base_url + path + '/{}'.format(rel_string)
-            else:
-                docs[rel_doc.value()] = base_url + path + '/{}'.format(rel_doc.value())
-        return docs
+#     def document_symbol(self):
+#         return self.record.document_symbol()
 
-    def summary(self):
-        return self.record.summary()
+#     def related_documents(self):
+#         '''
+#         tricky edge case:
+#         S/RES/2049(2012) is a valid symbol
+#         S/RES/2273(2016) is NOT a valie symbol
+#         but "S/RES/2273 (2016)" is a valid symbol
+#         We want to try both?
+#         '''
+#         docs = {}
+#         for rel_doc in self.record.related_documents():
+#             app.logger.debug("Related Doc: {}".format(rel_doc.value()))
+#             m = reldoc_re.match(rel_doc.value())
+#             if m:
+#                 rel_string = m.group(1) + '%20' + m.group(2)
+#                 docs[rel_doc.value()] = base_url + path + '/{}'.format(rel_string)
+#             else:
+#                 docs[rel_doc.value()] = base_url + path + '/{}'.format(rel_doc.value())
+#         return docs
 
-    def title_statement(self):
-        return [ts.value() for ts in self.record.title_statement()]
+#     def summary(self):
+#         return self.record.summary()
 
-    def imprint(self):
-        for f in self.record.imprint():
-            return f.value()
+#     def title_statement(self):
+#         return [ts.value() for ts in self.record.title_statement()]
 
-    def voting_record(self):
-        votes = []
-        for vote in self.record.voting_record():
-            votes.append(Field.format_field(vote))
-        return votes
+#     def imprint(self):
+#         for f in self.record.imprint():
+#             return f.value()
+
+#     def voting_record(self):
+#         votes = []
+#         for vote in self.record.voting_record():
+#             votes.append(Field.format_field(vote))
+#         return votes
