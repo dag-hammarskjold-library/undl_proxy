@@ -63,7 +63,7 @@ def index():
             query = re.sub(r'rg=\d+', "rg={}".format(records), query)
         else:
             query = query + "&rg={}".format(records)
-        # only get metadata per uwer request
+        # only get metadata per user request
         collection = _fetch_metadata(query)
         search_md = session.query(SearchMetadata).filter_by(undl_url=query).first()
         if not search_md:
@@ -80,11 +80,20 @@ def index():
                 abort(500)
 
         for record in collection:
-            metadata.append(_get_marc_metadata(record, display_fields))
-        pretty = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
-        search_md.json = pretty
+            metadata.append(_get_marc_metadata_as_json(record, display_fields))
+        pretty_json = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
+        pretty_xml = _get_marc_metadata_as_xml(collection, display_fields)
+        search_md.json = pretty_json
+        search_md.xml = pretty_xml
         session.commit()
-        return render_template('result.html', context={"pretty": pretty, "result": metadata, "query": query})
+        return render_template(
+            'result.html',
+            context={
+                "pretty_json": pretty_json,
+                "pretty_xml": pretty_xml,
+                "result": metadata,
+                "query": query}
+        )
 
     elif request.method == 'GET':
         record = request.args.get('record', None)
@@ -180,7 +189,7 @@ def _fetch_metadata(url):
         return r
 
 
-def _get_marc_metadata(record, fields):
+def _get_marc_metadata_as_json(record, fields):
     '''
     use the xml format of the page
     to nab metadata
@@ -233,6 +242,90 @@ def _get_marc_metadata(record, fields):
     #         'voting_record': parser.voting_record()
     #     }
     return ctx
+
+
+def _get_marc_metadata_as_xml(collection, fields):
+    from xml.etree import ElementTree as ET
+    from xml.dom import minidom
+
+    def prettify(elem):
+        rough_string = ET.tostring(elem, 'utf-8')
+        reparsed = minidom.parseString(rough_string)
+        return reparsed.toprettyxml(indent="  ")
+
+    records = ET.Element('records')
+
+    for record in collection:
+        parser = MARCXmlParse(record)
+        record = ET.SubElement(records, 'record')
+
+        if 'agenda' in fields:
+            agenda = ET.SubElement(record, 'agenda')
+            agenda.text = parser.agenda()
+
+        if 'author' in fields:
+            author = ET.SubElement(record, 'author')
+            author.text = parser.author()
+
+        if 'authority_authors' in fields:
+            authority_authors = ET.SubElement(record, 'authority_authors')
+            for auth_data in parser.authority_authors():
+                authority_authors.text = auth_data
+
+        if 'document_symbol' in fields:
+            document_symbol = ET.SubElement(record, "document_symbol")
+            document_symbol.text = parser.document_symbol()
+
+        if 'imprint' in fields:
+            imprint = ET.SubElement(record, "imprint")
+            imprint.text = parser.imprint()
+
+        if 'notes' in fields:
+            notes = ET.SubElement(record, "notes")
+            for note_data in parser.notes():
+                note = ET.SubElement(notes, "note")
+                note.text = note_data
+
+        if 'publisher' in fields:
+            publisher = ET.SubElement(record, 'publisher')
+            publisher.text = parser.publisher()
+
+        if 'pubyear' in fields:
+            pubyear = ET.SubElement(record, 'pubyear')
+            pubyear.text = parser.pubyear()
+
+        if 'related_documents' in fields:
+            related_documents = ET.SubElement(record, 'related_documents')
+            for doc in parser.related_documents():
+                related_document = ET.SubElement(related_documents, 'related_document')
+                related_document.text = doc
+
+        if 'subjects' in fields:
+            subjects = ET.SubElement(record, 'subjects')
+            for subj in parser.subjects():
+                subject = ET.SubElement(subjects, "subject")
+                subject.text = subj
+
+        if 'summary' in fields:
+            summary = ET.SubElement(record, "summary")
+            summary.text = parser.summary()
+
+        if 'title' in fields:
+            title = ET.SubElement(record, "title")
+            title.text = parser.title()
+
+        if 'title_statement' in fields:
+            title_statement = ET.SubElement(record, 'title_statement')
+            title_statement.text = parser.title_statement()
+
+        if 'voting_record' in fields:
+            voting_record = ET.SubElement(record, 'voting_record')
+            for elem in parser.voting_record():
+                vote = ET.SubElement(voting_record, 'vote')
+                vote.text = elem
+
+    print(records)
+    return prettify(records)
 
 
 class PageNotFoundException(Exception):

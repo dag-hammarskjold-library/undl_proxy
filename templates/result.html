@@ -15,13 +15,19 @@
     <button class="btn-primary" id='results-json'>JSON</button>
 </div>
 
-<div class="hidden" id="context-result">
-{{ context.pretty }}
+<div class="hidden" id="context-result-json">
+{{ context.pretty_json }}
 </div>
+
+<div class="hidden" id="context-result-xml">
+{{ context.pretty_xml }}
+</div>
+
 
 <div>
     {% for record in context.result %}
     <hr>
+    <p><h5>{{record.title}}</h5></p>
     <div>
         {% for key in record.keys() %}
             {{key}}
@@ -55,7 +61,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="modal-lable">Search JSON</h4>
+                <h4 class="modal-title" id="modal-lable">Search Results</h4>
             </div>
             <div class="modal-body">
                 <pre id="modal-document-data">
@@ -70,6 +76,7 @@
         </div>
     </div>
 </div>
+
 
 {% endblock %}
 
