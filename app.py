@@ -48,20 +48,22 @@ def index():
         raw_query = request.form.get('undl-query', None)
         num_records = request.form.get('num-records', None)
         display_fields = request.form.getlist('display-fields', None)
-        print(display_fields)
         query = ''
         records = num_records
         metadata = []
+        # see if there is an output format
         m = re.search(r'of=([a-zA-Z]{2,})', raw_query)
         if m:
             query = re.sub(r'of=([a-zA-Z]{2,})', "of=xm", raw_query)
         else:
             query = raw_query + "&of=xm"
+        # check num records in group
         m = re.search(r'rg=\d+', query)
         if m:
             query = re.sub(r'rg=\d+', "rg={}".format(records), query)
         else:
             query = query + "&rg={}".format(records)
+        # only get metadata per uwer request
         collection = _fetch_metadata(query)
         search_md = session.query(SearchMetadata).filter_by(undl_url=query).first()
         if not search_md:
@@ -70,7 +72,7 @@ def index():
                 session.add(search_md)
                 session.commit()
             except InterfaceError as ex:
-                "Interface error: {}".format(ex)
+                logger.error("Interface error: {}".format(ex))
                 abort(500)
 
             except (IntegrityError, SQLAlchemyError) as ex:
@@ -78,9 +80,11 @@ def index():
                 abort(500)
 
         for record in collection:
-            metadata.append(_get_marc_metadata(record))
+            metadata.append(_get_marc_metadata(record, display_fields))
         pretty = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
-        return render_template('result.html', context={"pretty": pretty, "result": metadata, "query": raw_query})
+        search_md.json = pretty
+        session.commit()
+        return render_template('result.html', context={"pretty": pretty, "result": metadata, "query": query})
 
     elif request.method == 'GET':
         record = request.args.get('record', None)
@@ -167,7 +171,8 @@ def _fetch_metadata(url):
     if resp.status != 200:
         print("Could not get {}, status: {}".format(url, resp.status))
     else:
-        xml_doc = BytesIO(resp.read())
+        raw_xml = resp.read()
+        xml_doc = BytesIO(raw_xml)
         r = marcxml.parse_xml_to_array(xml_doc, False, 'NFC')
         for record in r:
             print(record.title())
@@ -175,28 +180,58 @@ def _fetch_metadata(url):
         return r
 
 
-def _get_marc_metadata(record):
+def _get_marc_metadata(record, fields):
     '''
     use the xml format of the page
     to nab metadata
     '''
     parser = MARCXmlParse(record)
-    ctx = {
-        'agenda': parser.agenda(),
-        'author': parser.author(),
-        'authority_authors': parser.authority_authors(),
-        'document_symbol': parser.document_symbol(),
-        'imprint': parser.imprint(),
-        'notes': parser.notes(),
-        'publisher': parser.publisher(),
-        'pubyear': parser.pubyear(),
-        'related_documents': parser.related_documents(),
-        'subjects': parser.subjects(),
-        'summary': parser.summary(),
-        'title': parser.title(),
-        'title_statement': parser.title_statement(),
-        'voting_record': parser.voting_record()
-    }
+    ctx = {}
+    if 'agenda' in fields:
+        ctx['agenda'] = parser.agenda()
+    if 'author' in fields:
+        ctx['author'] = parser.author()
+    if 'authority_authors' in fields:
+        ctx['authority_authors'] = parser.authority_authors()
+    if 'document_symbol' in fields:
+        ctx['document_symbol'] = parser.document_symbol()
+    if 'imprint' in fields:
+        ctx['imprint'] = parser.imprint()
+    if 'notes' in fields:
+        ctx['notes'] = parser.notes()
+    if 'publisher' in fields:
+        ctx['publisher'] = parser.publisher()
+    if 'pubyear' in fields:
+        ctx['pubyear'] = parser.pubyear()
+    if 'related_documents' in fields:
+        ctx['related_documents'] = parser.related_documents()
+    if 'subjects' in fields:
+        ctx['subjects'] = parser.subjects()
+    if 'summary' in fields:
+        ctx['summary'] = parser.summary()
+    if 'title' in fields:
+        ctx['title'] = parser.title()
+    if 'title_statement' in fields:
+        ctx['title_statement'] = parser.title_statement()
+    if 'voting_record' in fields:
+        ctx['voting_record'] = parser.voting_record()
+    # else:
+    #     ctx = {
+    #         'agenda': parser.agenda(),
+    #         'author': parser.author(),
+    #         'authority_authors': parser.authority_authors(),
+    #         'document_symbol': parser.document_symbol(),
+    #         'imprint': parser.imprint(),
+    #         'notes': parser.notes(),
+    #         'publisher': parser.publisher(),
+    #         'pubyear': parser.pubyear(),
+    #         'related_documents': parser.related_documents(),
+    #         'subjects': parser.subjects(),
+    #         'summary': parser.summary(),
+    #         'title': parser.title(),
+    #         'title_statement': parser.title_statement(),
+    #         'voting_record': parser.voting_record()
+    #     }
     return ctx
 
 

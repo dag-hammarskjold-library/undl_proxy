@@ -12,8 +12,8 @@ class SearchMetadata(Base):
     undl_url = Column(String, unique=True)
     xml = Column(Text, nullable=True)
     json = Column(Text, nullable=True)
-    created = Column(DateTime, default=datetime.datetime.now)
-    updated = Column(DateTime, onupdate=datetime.datetime.now)
+    created = Column(DateTime, default=datetime.datetime.utcnow)
+    updated = Column(DateTime, onupdate=datetime.datetime.utcnow)
 
     def __init__(self, undl_url):
         self.undl_url = undl_url
