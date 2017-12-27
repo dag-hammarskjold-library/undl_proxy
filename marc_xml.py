@@ -1,22 +1,20 @@
-import re
 from pymarc.field import Field
 from logging import getLogger
 from urllib import parse
 from flask import Flask
-
-base_url = 'http://dag.un.org'
-path = '/docs'
+from .config import DevelopmentConfig
 
 app = Flask(__name__)
+app.config.from_object(DevelopmentConfig)
+
+base_url = app.config.get('BASE_URL')
+path = app.config.get('PATH')
+
 
 logger = getLogger(__name__)
 
-subject_re = re.compile(r"""
-        ^\d{6,7}\s(?:unbis[nt])*\s*(.+)$|
-        ^([a-zA-Z ]+)\sunbis[nt]\s\d+$|
-        ^unbist\s([a-zA-Z ]+)\s\(DHLAUTH\)\d+$|
-        ([a-zA-Z ]+)\sunbist\s\(DHLAUTH\)\d+$""", re.X)
-reldoc_re = re.compile(r'^([a-zA-Z0-9\/]+)(\(\d{4}\))$')
+subject_re = app.config.get('SUBJECT_RE')
+reldoc_re = app.config.get('RELDOC_RE')
 
 
 class MARCXmlParse:

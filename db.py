@@ -1,9 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from flask import Flask
+from .config import DevelopmentConfig
 from .models import SearchMetadata
 
-engine = create_engine('sqlite:////tmp/undl_url.db', convert_unicode=True)
+app = Flask(__name__)
+app.config.from_object(DevelopmentConfig)
+
+DB_URI = app.config.get('DB_URI', None)
+engine = create_engine(DB_URI, convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
