@@ -114,3 +114,24 @@ img {
     visibility: visible;
     opacity: 1;
 }
+
+.boxed {
+  border: 1px solid blue ;
+}
+
+.container {
+    width:100%;
+    border:1px solid #d3d3d3;
+}
+.container div {
+    width:100%;
+}
+.container .header {
+    /*background-color:#d3d3d3;*/
+    padding: 2px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.container .content {
+    padding : 5px;
+}

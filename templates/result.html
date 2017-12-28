@@ -3,62 +3,56 @@
 {% block page_title %}Example Document Symbols{% endblock %}
 
 {% block content %}
-
-<div>
-    <input type="button" class="btn-info btn-xs" value="Home" id='results-home'>
+<div class="header">
+        <span style="font-size: 66%">Original Url: <a href={{context.query}} target="#">{{context.query}}</a></span>
 </div>
-<br />
-<br />
-<div>
-    <h5>Original Url:</h5> <a href={{context.query}} target="#">{{context.query}}</a>
-</div>
-
-<br />
-<br />
-<div>
+<div class="container">
+    
     <div>
-        <button class='btn-primary' id='results-xml'>XML</button>
-        <button class="btn-primary" id='results-json'>JSON</button>
-    </div>
-</div>
-
-<div>
-    <div style="display: none;" id="search-metadata-id">{{ context.search_metadata_id }}</div>
-
-
-<div>
-    <div>
-        {% for record in context.result %}
-        
-        <p><h5>{{record.title}}</h5></p>
-        <hr>
         <div>
-            {% for key in record.keys() %}
-                {{key}}
-            <ul>
-                {% if record[key] is mapping %}
-                    {% for k, v in record[key].items() %}
-                    <li>
-                        {{ k }} -> {{ v }}
-                    </li>
-                    {% endfor %}
-                {% elif record[key] is iterable and record[key] is not string %}
-                    {% for k in record[key] %}
-                    <li>
-                        {{ k }}
-                    </li>
-                    {% endfor %}
-                {% else %}
-                    <li>
-                        {{ record[key] }}
-                    </li>
-                {% endif %}
-            </ul>
+            <input type="button" class="btn-info btn-xs" value="Home" id='results-home'>
+            <button class='btn-primary' id='results-xml'>XML</button>
+            <button class="btn-primary" id='results-json'>JSON</button>
+        </div>
+    </div>
+    <br />
+
+    <div>
+        <div style="display: none;" id="search-metadata-id">{{ context.search_metadata_id }}</div>
+    </div>
+
+    <div class="content">
+        <div>
+            {% for record in context.result %}
+            
+            <div class="boxed">
+                <p><h4>{{record.title}}</h4></p>
+                {% for key in record.keys() %}
+                    <p>{{key}}</p>
+                <ul>
+                    {% if record[key] is mapping %}
+                        {% for k, v in record[key].items() %}
+                        <li>
+                            <a href="{{v}}">{{k}}</a>
+                        </li>
+                        {% endfor %}
+                    {% elif record[key] is iterable and record[key] is not string %}
+                        {% for k in record[key] %}
+                        <li>
+                            {{ k }}
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>
+                            {{ record[key] }}
+                        </li>
+                    {% endif %}
+                </ul>
+                {% endfor %}
+            </div>
             {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </div>
-
 
 {% endblock %}
