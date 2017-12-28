@@ -23,15 +23,8 @@
 </div>
 
 <div>
-    <div style="display: none;" id="context-result-json">
-{{ context.pretty_json }}
-    </div>
+    <div style="display: none;" id="search-metadata-id">{{ context.search_metadata_id }}</div>
 
-
-    <div style="display: none;" id="context-result-xml">
-{{ context.pretty_xml }}
-    </div>
-</div>
 
 <div>
     <div>
@@ -64,29 +57,6 @@
             {% endfor %}
         </div>
         {% endfor %}
-    </div>
-</div>
-
-
-<div class="modal fade" id="document_modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modal-lable">Search Results</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                
-            </div>
-            <div class="modal-body">
-                <pre id="modal-document-data">
-                </pre>
-            </div>
-            <div class="modal-footer">
-                <!-- <button class="clipboard" data-clipboard-target="#modal-document-data">
-                     Copy to Clipboard
-                </button> -->
-                <button class="clipboard" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
     </div>
 </div>
 

@@ -83,11 +83,11 @@ def index():
         search_md.json = pretty_json
         search_md.xml = pretty_xml
         session.commit()
+        print("Search Metadata ID : {}".format(search_md.id))
         return render_template(
             'result.html',
             context={
-                "pretty_json": pretty_json,
-                "pretty_xml": pretty_xml,
+                "search_metadata_id": search_md.id,
                 "result": metadata,
                 "query": query}
         )
