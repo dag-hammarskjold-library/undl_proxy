@@ -83,7 +83,6 @@ def index():
         search_md.json = pretty_json
         search_md.xml = pretty_xml
         session.commit()
-        print("Search Metadata ID : {}".format(search_md.id))
         return render_template(
             'result.html',
             context={
@@ -96,7 +95,6 @@ def index():
         record = request.args.get('record', None)
         if record:
             sm = session.query(SearchMetadata).get(record)
-            print(sm)
             if sm:
                 return render_template("search_metadata.html", context={"obj": sm.to_dict()})
             else:
@@ -138,28 +136,28 @@ def index2(undl_url):
     dt = request.args.get('dt', None)  # date type -- c=creation, m=modification
 
     # print("Url: {}".format(url))
-    print("Pattern: {}".format(p))
-    print("Collection: {}".format(c))
-    print("Field: {}".format(f))
-    print("Records in Group: {}".format(rg))
-    print("Sort Field: {}".format(sf))
-    print("Sort Order: {}".format(so))
-    print("Ranking Method: {}".format(rm))
-    print("Output Format: {}".format(of))
-    print("Output Tags: {}".format(ot))
-    print("Part of the page: {}".format(em))
-    print("Split Collection: {}".format(sc))
-    print("Jump to Record: {}".format(jrec))
-    print("Record ID: {}".format(recid))
-    print("Date 1: {}".format(d1))
-    print("Date 1 year: {}".format(d1y))
-    print("Date 1 month: {}".format(d1m))
-    print("Date 1 day: {}".format(d1d))
-    print("Date 2: {}".format(d2))
-    print("Date 2 year: {}".format(d2y))
-    print("Date 2 month: {}".format(d2m))
-    print("Date 2 day: {}".format(d2d))
-    print("Date Type: {}".format(dt))
+    logger.info("Pattern: {}".format(p))
+    logger.info("Collection: {}".format(c))
+    logger.info("Field: {}".format(f))
+    logger.info("Records in Group: {}".format(rg))
+    logger.info("Sort Field: {}".format(sf))
+    logger.info("Sort Order: {}".format(so))
+    logger.info("Ranking Method: {}".format(rm))
+    logger.info("Output Format: {}".format(of))
+    logger.info("Output Tags: {}".format(ot))
+    logger.info("Part of the page: {}".format(em))
+    logger.info("Split Collection: {}".format(sc))
+    logger.info("Jump to Record: {}".format(jrec))
+    logger.info("Record ID: {}".format(recid))
+    logger.info("Date 1: {}".format(d1))
+    logger.info("Date 1 year: {}".format(d1y))
+    logger.info("Date 1 month: {}".format(d1m))
+    logger.info("Date 1 day: {}".format(d1d))
+    logger.info("Date 2: {}".format(d2))
+    logger.info("Date 2 year: {}".format(d2y))
+    logger.info("Date 2 month: {}".format(d2m))
+    logger.info("Date 2 day: {}".format(d2d))
+    logger.info("Date Type: {}".format(dt))
     return undl_url
 
 
@@ -168,7 +166,7 @@ def list_records():
     context = {}
     searches = session.query(SearchMetadata).all()
     for search in searches:
-        context[search.undl_url] = search.to_dict()
+        context[search.undl_url] = search.undl_url
 
     return render_template("list.html", context=context)
 
@@ -230,6 +228,7 @@ def _get_marc_metadata_as_json(record, fields):
     '''
     parser = MARCXmlParse(record)
     ctx = {}
+    ctx['title'] = parser.title()
     if 'agenda' in fields:
         ctx['agenda'] = parser.agenda()
     if 'author' in fields:
@@ -254,8 +253,6 @@ def _get_marc_metadata_as_json(record, fields):
         ctx['subjects'] = parser.subjects()
     if 'summary' in fields:
         ctx['summary'] = parser.summary()
-    if 'title' in fields:
-        ctx['title'] = parser.title()
     if 'title_statement' in fields:
         ctx['title_statement'] = parser.title_statement()
     if 'voting_record' in fields:
