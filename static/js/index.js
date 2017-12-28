@@ -3,6 +3,12 @@ $(document).ready(function() {
 
     $("#checkAll").change(function () {
         $("input:checkbox").prop('checked', $(this).prop("checked"));
+        
+        if ($("input:checkbox").is(':checked')) {
+            $('#check-label').text('Uncheck All');
+        } else {
+            $('#check-label').text('Check All');
+    }
     });
 
     $("#results-json").on("click", function() {
@@ -22,4 +28,7 @@ $(document).ready(function() {
         // myWindow.focus();
     });
 
+    $("#results-home").on("click", function(){
+        location.href = "/";
+    });
 });

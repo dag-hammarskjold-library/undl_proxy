@@ -5,55 +5,66 @@
 {% block content %}
 
 <div>
-    Original Url: <a href={{context.query}} target="#">{{context.query}}</a>
+    <input type="button" class="btn-info btn-xs" value="Home" id='results-home'>
+</div>
+<br />
+<br />
+<div>
+    <h5>Original Url:</h5> <a href={{context.query}} target="#">{{context.query}}</a>
 </div>
 
 <br />
 <br />
 <div>
-    <button class='btn-primary' id='results-xml'>XML</button>
-    <button class="btn-primary" id='results-json'>JSON</button>
-</div>
-
-<div class="hidden" id="context-result-json">
-{{ context.pretty_json }}
-</div>
-
-<div class="hidden" id="context-result-xml">
-{{ context.pretty_xml }}
-</div>
-
-
-<div>
-    {% for record in context.result %}
-    
-    <p><h5>{{record.title}}</h5></p>
-    <hr>
     <div>
-        {% for key in record.keys() %}
-            {{key}}
-        <ul>
-            {% if record[key] is mapping %}
-                {% for k, v in record[key].items() %}
-                <li>
-                    {{ k }} -> {{ v }}
-                </li>
-                {% endfor %}
-            {% elif record[key] is iterable and record[key] is not string %}
-                {% for k in record[key] %}
-                <li>
-                    {{ k }}
-                </li>
-                {% endfor %}
-            {% else %}
-                <li>
-                    {{ record[key] }}
-                </li>
-            {% endif %}
-        </ul>
+        <button class='btn-primary' id='results-xml'>XML</button>
+        <button class="btn-primary" id='results-json'>JSON</button>
+    </div>
+</div>
+
+<div>
+    <div style="display: none;" id="context-result-json">
+{{ context.pretty_json }}
+    </div>
+
+
+    <div style="display: none;" id="context-result-xml">
+{{ context.pretty_xml }}
+    </div>
+</div>
+
+<div>
+    <div>
+        {% for record in context.result %}
+        
+        <p><h5>{{record.title}}</h5></p>
+        <hr>
+        <div>
+            {% for key in record.keys() %}
+                {{key}}
+            <ul>
+                {% if record[key] is mapping %}
+                    {% for k, v in record[key].items() %}
+                    <li>
+                        {{ k }} -> {{ v }}
+                    </li>
+                    {% endfor %}
+                {% elif record[key] is iterable and record[key] is not string %}
+                    {% for k in record[key] %}
+                    <li>
+                        {{ k }}
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li>
+                        {{ record[key] }}
+                    </li>
+                {% endif %}
+            </ul>
+            {% endfor %}
+        </div>
         {% endfor %}
     </div>
-    {% endfor %}
 </div>
 
 
@@ -61,8 +72,9 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
+                <h5 class="modal-title" id="modal-lable">Search Results</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="modal-lable">Search Results</h4>
+                
             </div>
             <div class="modal-body">
                 <pre id="modal-document-data">

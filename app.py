@@ -41,6 +41,10 @@ def index():
         raw_query = request.form.get('undl-query', None)
         num_records = request.form.get('num-records', None)
         display_fields = request.form.getlist('display-fields', None)
+        if not raw_query:
+            return "Please supply a URL"
+        if not display_fields:
+            return "Please choose at least one report field"
         query = ''
         records = num_records
         metadata = []
@@ -99,6 +103,11 @@ def index():
                 return render_template('index.html')
         else:
             return render_template('index.html')
+
+
+@app.route('/nav/')
+def nav():
+    return render_template('nav.html')
 
 
 @app.route('/search', defaults={'path': ''})

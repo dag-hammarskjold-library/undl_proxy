@@ -1,8 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'nav.html' %}
 
 {% block page_title %}Example Document Symbols{% endblock %}
 
 {% block content %}
+
 <div>
     <form id='undel-query-input' action='/' method="POST">
     <div class="form-group">
@@ -14,53 +15,54 @@
     </div>
     <div class="form-group">
         <label for="num-records">Number of Records (default 10)</label> 
-        <input type="text" size="12" class="form-control" id="num-records" name="num-records">
+        <input type="text" maxlength="4" size="4" class="form-control" id="num-records" name="num-records">
     </div>
 
     <div class="form-group">
-        <input type="checkbox" name="display-fields" value="agenda" id="agenda">
+        <p><input type="checkbox" id="checkAll" checked> <label id="check-label">Uncheck All</label></p>
+
+        <input type="checkbox" name="display-fields" value="agenda" id="agenda" checked>
             <label for="agenda">Agenda</label>
         <br />
-        <input type="checkbox" name="display-fields" value="author" id="author">
+        <input type="checkbox" name="display-fields" value="author" id="author" checked>
             <label for="author">Author</label>
         <br />
-        <input type="checkbox" name="display-fields" value="authority_authors" id="authority_authors">
+        <input type="checkbox" name="display-fields" value="authority_authors" id="authority_authors" checked>
             <label for="authority_authors">Authority Author</label>
         <br />
-        <input type="checkbox" name="display-fields" value="document_symbol" id="document_symbol">
+        <input type="checkbox" name="display-fields" value="document_symbol" id="document_symbol" checked>
             <label for="document_symbol">Document Symbol</label>
         <br />
-        <input type="checkbox" name="display-fields" value="imprint" id="imprint">
+        <input type="checkbox" name="display-fields" value="imprint" id="imprint" checked>
             <label for="imprint">Imprint</label>
         <br />
-        <input type="checkbox" name="display-fields" value="notes" id="notes">
+        <input type="checkbox" name="display-fields" value="notes" id="notes" checked>
             <label for="notes">Notes</label>
         <br />
-        <input type="checkbox" name="display-fields" value="publisher" id="publisher">
+        <input type="checkbox" name="display-fields" value="publisher" id="publisher" checked>
             <label for="publisher">Publisher</label>
         <br />
-        <input type="checkbox" name="display-fields" value="pub_date" id="pub_date">
+        <input type="checkbox" name="display-fields" value="pub_date" id="pub_date" checked>
             <label for="pub_date">Publish Date</label>
         <br />
-        <input type="checkbox" name="display-fields" value="pubyear" id="pubyear">
+        <input type="checkbox" name="display-fields" value="pubyear" id="pubyear" checked>
             <label for="pubyear">Publish Year</label>
         <br />
-        <input type="checkbox" name="display-fields" value="related_documents" id="related_documents">
+        <input type="checkbox" name="display-fields" value="related_documents" id="related_documents" checked>
             <label for="related_documents">Related Documents</label>
         <br />
-        <input type="checkbox" name="display-fields" value="subjects" id="subjects">
+        <input type="checkbox" name="display-fields" value="subjects" id="subjects" checked>
             <label for="subjects">Subjects</label>
         <br />
-        <input type="checkbox" name="display-fields" value="summary" id="summary">
+        <input type="checkbox" name="display-fields" value="summary" id="summary" checked>
             <label for="summary">Summary</label>
         <br />
-        <input type="checkbox" name="display-fields" value="title" id="title">
+        <input type="checkbox" name="display-fields" value="title" id="title" checked>
             <label for="title">Title</label>
         <br />
-        <input type="checkbox" name="display-fields" value="voting_record" id="voting_record">
+        <input type="checkbox" name="display-fields" value="voting_record" id="voting_record" checked>
             <label for="voting_record">Voting Record</label>
-        <br /><br />
-        <p><label><input type="checkbox" id="checkAll"/> Check all</label></p>
+        
     </div>
         <button type="submit" class="btn btn-primary" id="undl-query-button">Submit</button>
     </form>
