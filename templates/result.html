@@ -3,19 +3,32 @@
 {% block page_title %}Example Document Symbols{% endblock %}
 
 {% block content %}
-<div class="header">
+
+<div class="container-fluid"> 
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Home</a>
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <button class="btn btn-small" id='results-json'>JSON</button>
+            </li>
+            &nbsp;
+            <li class="nav-item">
+                <button class="btn btn-small" id='results-xml'>XML</button>
+            </li>
+        </ul>
+    </nav>
+    <!-- <class="container"> -->
+    <div class="header">
         <span style="font-size: 66%">Original Url: <a href={{context.query}} target="#">{{context.query}}</a></span>
-</div>
-<div class="container">
-    
-    <div>
+    </div>
+<!--     <div>
         <div>
             <input type="button" class="btn-info btn-xs" value="Home" id='results-home'>
             <button class='btn-primary' id='results-xml'>XML</button>
             <button class="btn-primary" id='results-json'>JSON</button>
         </div>
     </div>
-    <br />
+ -->    <br />
 
     <div>
         <div style="display: none;" id="search-metadata-id">{{ context.search_metadata_id }}</div>
@@ -26,7 +39,7 @@
             {% for record in context.result %}
             
             <div class="boxed">
-                <p><h4>{{record.title}}</h4></p>
+                <p><h5>{{record.title}}</h5></p>
                 {% for key in record.keys() %}
                     <p>{{key}}</p>
                 <ul>

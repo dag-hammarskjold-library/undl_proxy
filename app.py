@@ -224,6 +224,7 @@ def _get_marc_metadata_as_json(record, fields):
     check what fields have been requested
     for each field, set dictionary key to field name
         set dictionary value to MARCXmlParse's value for name
+        Note: switch pubdate and pubyear
 
     '''
     parser = MARCXmlParse(record)
@@ -244,9 +245,9 @@ def _get_marc_metadata_as_json(record, fields):
     if 'publisher' in fields:
         ctx['publisher'] = parser.publisher()
     if 'pubyear' in fields:
-        ctx['pubyear'] = parser.pubyear()
-    if 'pub_date' in fields:
-        ctx['pub_date'] = parser.pub_date()
+        ctx['pubyear'] = parser.pub_date()
+    if 'pubdate' in fields:
+        ctx['pubdate'] = parser.pubyear()
     if 'related_documents' in fields:
         ctx['related_documents'] = parser.related_documents()
     if 'subjects' in fields:
