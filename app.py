@@ -66,8 +66,9 @@ def index():
             query = re.sub(r'rg=\d+', "rg={}".format(records), query)
         else:
             query = query + "&rg={}".format(records)
-        # only get metadata per user request
+        # get collection of records from MARCXML
         collection = _fetch_metadata(query)
+        # insert or update SearchMetadata
         search_md = session.query(SearchMetadata).filter_by(undl_url=query).first()
         if not search_md:
             try:
@@ -82,6 +83,7 @@ def index():
                 logger.error("Could not insert/update: {}".format(ex))
                 abort(500)
 
+        # only show those display fields requested
         for record in collection:
             metadata.append(_get_marc_metadata_as_json(record, display_fields))
         pretty_json = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
@@ -94,10 +96,12 @@ def index():
             context={
                 "search_metadata_id": search_md.id,
                 "result": metadata,
-                "query": raw_query}
+                "query": raw_query
+            }
         )
 
     elif request.method == 'GET':
+        # either requesting Form or requesting a record by ID
         record = request.args.get('record', None)
         if record:
             sm = session.query(SearchMetadata).get(record)
