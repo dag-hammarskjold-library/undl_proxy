@@ -1,10 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div>
-{% for field, val in context.obj.items() %}
-<p>{{ field }} -> {{ val }} </p>
-{% endfor %}
 
+<div class="container-fluid"> 
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Home</a>
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <button class="btn btn-small" id='results-json'>as JSON</button>
+            </li>
+            &nbsp;
+            <li class="nav-item">
+                <button class="btn btn-small" id='results-xml'>as XML</button>
+            </li>
+        </ul>
+    </nav>
+    <!-- <class="container"> -->
+    <div class="header">
+        <span>Original Url: <a href={{context.obj.url}} target="#">{{context.obj.url}}</a></span><br/>
+        <span>Created: {{context.obj.created}}</span><br/>
+        <span>Updated: {{context.obj.updated}}</span>
+    </div>
 </div>
+
+<div>
+    <div style="display: none;" id="search-metadata-id">{{ context.obj.id }}</div>
+</div>
+
 {% endblock %}

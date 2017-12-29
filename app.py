@@ -41,10 +41,16 @@ def index():
         raw_query = request.form.get('undl-query', None)
         num_records = request.form.get('num-records', None)
         display_fields = request.form.getlist('display-fields', None)
+        records = 10  # set a default
         if not raw_query:
             return "Please supply a URL"
         if not display_fields:
-            return "Please choose at least one report field"
+            display_fields = [
+                'agenda', 'author',
+                'authority_authors', 'document_symbol', 'imprint', 'notes',
+                'publisher', 'pubdate', 'pubyear', 'related_documents',
+                'subjects', 'summary', 'title', 'voting_record'
+            ]
         query = ''
         records = num_records
         metadata = []
@@ -88,7 +94,7 @@ def index():
             context={
                 "search_metadata_id": search_md.id,
                 "result": metadata,
-                "query": query}
+                "query": raw_query}
         )
 
     elif request.method == 'GET':
@@ -98,7 +104,7 @@ def index():
             if sm:
                 return render_template("search_metadata.html", context={"obj": sm.to_dict()})
             else:
-                return render_template('index.html')
+                abort(404)
         else:
             return render_template('index.html')
 
