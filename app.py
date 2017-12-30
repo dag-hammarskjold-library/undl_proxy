@@ -66,31 +66,10 @@ def index():
             query = re.sub(r'rg=\d+', "rg={}".format(records), query)
         else:
             query = query + "&rg={}".format(records)
-        # get collection of records from MARCXML
-        collection = _fetch_metadata(query)
+
         # insert or update SearchMetadata
-        search_md = session.query(SearchMetadata).filter_by(undl_url=query).first()
-        if not search_md:
-            try:
-                search_md = SearchMetadata(undl_url=query)
-                session.add(search_md)
-                session.commit()
-            except InterfaceError as ex:
-                logger.error("Interface error: {}".format(ex))
-                abort(500)
+        search_md, metadata = _update_record_for_url(query, display_fields)
 
-            except (IntegrityError, SQLAlchemyError) as ex:
-                logger.error("Could not insert/update: {}".format(ex))
-                abort(500)
-
-        # only show those display fields requested
-        for record in collection:
-            metadata.append(_get_marc_metadata_as_json(record, display_fields))
-        pretty_json = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
-        pretty_xml = _get_marc_metadata_as_xml(collection, display_fields)
-        search_md.json = pretty_json
-        search_md.xml = pretty_xml
-        session.commit()
         return render_template(
             'result.html',
             context={
@@ -106,7 +85,14 @@ def index():
         if record:
             sm = session.query(SearchMetadata).get(record)
             if sm:
-                return render_template("search_metadata.html", context={"obj": sm.to_dict()})
+                ctx = _parse_query(sm.undl_url)
+                return render_template(
+                    "search_metadata.html",
+                    context={
+                        "obj": sm.to_dict(),
+                        "params": ctx
+                    }
+                )
             else:
                 abort(404)
         else:
@@ -118,13 +104,18 @@ def nav():
     return render_template('nav.html')
 
 
-@app.route('/search', defaults={'path': ''})
-@app.route('/search/<path:undl_url>')
-def index2(undl_url):
-    # undl_url = request.args.get('undl_url', None)
-    p = request.args.get('p', None)  # search Pattern
-    c = request.args.getlist('c', None)  # collection list
-    f = request.args.get('f', None)  # field to search within
+# @app.route('/search', defaults={'path': ''})
+# @app.route('/search/<path:undl_url>')
+def _parse_query(undl_url):
+    ctx = {}
+    from urllib.parse import parse_qs
+    res = parse_qs(undl_url)
+    ctx['pattern'] = res.get('p', None)  # search Pattern
+    ctx['pattern1'] = res.get('p1', None)
+    ctx['collection'] = res.get('c', None)  # collection list
+    ctx['collection1'] = res.get('cc', None)  # collection list
+    ctx['search_field'] = res.get('f', None)  # search field
+    ctx['search_field1'] = res.get('f1', None)  # search field
     rg = request.args.get('rg', None)  # records in groups of
     sf = request.args.get('sf', None)  # sort field
     so = request.args.get('so', None)  # sort order
@@ -146,9 +137,12 @@ def index2(undl_url):
     dt = request.args.get('dt', None)  # date type -- c=creation, m=modification
 
     # print("Url: {}".format(url))
-    logger.info("Pattern: {}".format(p))
-    logger.info("Collection: {}".format(c))
-    logger.info("Field: {}".format(f))
+    # logger.info("Pattern: {}".format(p))
+    # logger.info("Pattern: {}".format(p1))
+    # logger.info("Collection: {}".format(c))
+    # logger.info("Collection: {}".format(cc))
+    # logger.info("Field: {}".format(f))
+    # logger.info("Field: {}".format(f1))
     logger.info("Records in Group: {}".format(rg))
     logger.info("Sort Field: {}".format(sf))
     logger.info("Sort Order: {}".format(so))
@@ -168,7 +162,8 @@ def index2(undl_url):
     logger.info("Date 2 month: {}".format(d2m))
     logger.info("Date 2 day: {}".format(d2d))
     logger.info("Date Type: {}".format(dt))
-    return undl_url
+
+    return ctx
 
 
 @app.route("/list")
@@ -184,27 +179,68 @@ def list_records():
 @app.route("/xml/")
 def show_xml():
     rec_id = request.args.get('rec_id')
+    refresh = request.args.get('refresh')
     sm = session.query(SearchMetadata).get(int(rec_id))
     if sm:
-        if sm.xml:
+        if sm.xml and not refresh:
+            return Response(sm.xml, mimetype='text/xml')
+        elif refresh == "true":
+            sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             return Response(sm.xml, mimetype='text/xml')
         else:
             return "No XML for record {}".format(rec_id)
     else:
-        return "Invalid Record ID"
+        abort(404)
 
 
 @app.route("/json/")
 def show_json():
     rec_id = request.args.get('rec_id')
+    refresh = request.args.get('refresh')
     sm = session.query(SearchMetadata).get(int(rec_id))
     if sm:
-        if sm.json:
+        if sm.json and not refresh:
+            return Response(sm.json, mimetype='text/json')
+        elif refresh == 'true':
+            sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             return Response(sm.json, mimetype='text/json')
         else:
             return "No JSON for record {}".format(rec_id)
     else:
         return "Invalid Record ID"
+
+
+def _update_record_for_url(url, display_fields):
+    """
+    given a url and display fields, update (or create) a SearchMetadata obj
+    """
+    metadata = []
+    collection = _fetch_metadata(url)
+    search_md = session.query(SearchMetadata).filter_by(undl_url=url).first()
+    if not search_md:
+        try:
+            fields = ','.join(display_fields)
+            search_md = SearchMetadata(undl_url=url)
+            search_md.display_fields = fields
+            session.add(search_md)
+            session.commit()
+        except InterfaceError as ex:
+            logger.error("Interface error: {}".format(ex))
+            abort(500)
+
+        except (IntegrityError, SQLAlchemyError) as ex:
+            logger.error("Could not insert/update: {}".format(ex))
+            abort(500)
+
+    for record in collection:
+        metadata.append(_get_marc_metadata_as_json(record, display_fields))
+    pretty_json = json.dumps(metadata, sort_keys=True, indent=2, separators=(',', ': '))
+    pretty_xml = _get_marc_metadata_as_xml(collection, display_fields)
+    search_md.json = pretty_json
+    search_md.xml = pretty_xml
+    session.commit()
+
+    return search_md, metadata
 
 
 def _fetch_metadata(url):

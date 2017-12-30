@@ -12,6 +12,7 @@ class SearchMetadata(Base):
     undl_url = Column(String, unique=True)
     xml = Column(Text, nullable=True)
     json = Column(Text, nullable=True)
+    display_fields = Column(String, nullable=False)
     created = Column(DateTime, default=datetime.datetime.utcnow)
     updated = Column(DateTime, onupdate=datetime.datetime.utcnow)
 
