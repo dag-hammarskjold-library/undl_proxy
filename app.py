@@ -2,7 +2,7 @@ from .config import DevelopmentConfig
 from .db import get_session
 from .marc_xml import MARCXmlParse
 from .models import SearchMetadata
-from flask import Flask, render_template, request, abort, Response
+from flask import Flask, render_template, request, abort, Response, send_file
 from io import BytesIO
 from logging import getLogger
 from pymarc import marcxml
@@ -12,6 +12,9 @@ from urllib.error import HTTPError, URLError
 import json
 import re
 import ssl
+import csv
+# from io import StringIO
+from tempfile import TemporaryFile
 
 session = get_session()
 
@@ -207,7 +210,46 @@ def show_json():
         else:
             return "No JSON for record {}".format(rec_id)
     else:
-        return "Invalid Record ID"
+        abort(404)
+
+
+@app.route("/csv/")
+def show_csv():
+    rec_id = request.args.get('rec_id')
+    refresh = request.args.get('refresh')
+
+    def write_to_csv(sm):
+        if not sm.json:
+            abort(500)
+        data = json.loads(sm.json)
+        t_file = TemporaryFile()
+        # import pdb
+        # pdb.set_trace()
+        for rec in data:
+            # print(rec)
+            w = csv.DictWriter(t_file, rec.keys())
+            # w.writeheader()
+            w.writerow(rec.keys())
+            w.writerow(rec)
+        return t_file
+
+    sm = session.query(SearchMetadata).get(int(rec_id))
+    if sm:
+        if sm.json and not refresh:
+            t_file = write_to_csv(sm)
+            return send_file(t_file,
+                     attachment_filename="data_{}.csv".format(rec_id),
+                     as_attachment=True)
+        elif refresh == 'true':
+            sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
+            t_file = write_to_csv(sm)
+            return send_file(t_file,
+                     attachment_filename="data_{}.csv".format(rec_id),
+                     as_attachment=True)
+        else:
+            return "No JSON for record {}".format(rec_id)
+    else:
+        abort(404)
 
 
 def _update_record_for_url(url, display_fields):
