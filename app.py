@@ -13,7 +13,6 @@ import json
 import re
 import ssl
 import csv
-# from io import StringIO
 from tempfile import TemporaryFile
 
 session = get_session()
@@ -222,15 +221,32 @@ def show_csv():
         if not sm.json:
             abort(500)
         data = json.loads(sm.json)
-        t_file = TemporaryFile()
-        # import pdb
-        # pdb.set_trace()
+        t_file = TemporaryFile(mode='w')
+        # header = []
+        # authority_authors = []
+        # notes = []
+        # related_documents = []
+        # subjects = []
+        # voting_record = []
+        csvwriter = csv.DictWriter(t_file, data[0].keys())
         for rec in data:
-            # print(rec)
-            w = csv.DictWriter(t_file, rec.keys())
-            # w.writeheader()
-            w.writerow(rec.keys())
-            w.writerow(rec)
+            csvwriter.writerow(rec)
+            # for elem in rec:
+            #     csvwriter.writerow(rec.keys())
+            #     if elem == 'header':
+            #         header.append(rec['header'])
+            #     elif elem == 'authority_authors':
+            #         authority_authors.append(rec['authority_authors'])
+            #     elif elem == 'notes':
+            #         notes.append(rec['notes'])
+            #     elif elem == 'related_documents':
+            #         related_documents.append(rec['related_documents'].keys())
+            #     elif elem == 'subjects':
+            #         subjects.append(rec['subjects'].keys())
+            #     elif elem == 'voting_record':
+            #         voting_record.append(rec['voting_record'])
+
+            #     csvwriter.writerow(rec)
         return t_file
 
     sm = session.query(SearchMetadata).get(int(rec_id))
