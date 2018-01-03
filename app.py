@@ -81,9 +81,9 @@ def index():
 
     elif request.method == 'GET':
         # either requesting Form or requesting a record by ID
-        record = request.args.get('record', None)
-        if record:
-            sm = session.query(SearchMetadata).get(record)
+        rec_id = request.args.get('rec_id', None)
+        if rec_id:
+            sm = session.query(SearchMetadata).get(rec_id)
             if sm:
                 ctx = _parse_query(sm.undl_url)
                 return render_template(
@@ -171,7 +171,7 @@ def list_records():
     context = {}
     searches = session.query(SearchMetadata).all()
     for search in searches:
-        context[search.undl_url] = search.undl_url
+        context[search.undl_url] = search.id
 
     return render_template("list.html", context=context)
 
