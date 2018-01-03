@@ -13,12 +13,12 @@ $(document).ready(function() {
 
     $("#results-json").on("click", function() {
         var search_metadata_id = $("div#search-metadata-id").text();
-        location.href = "json/?rec_id="+search_metadata_id;
+        location.href = "json/?rec_id="+search_metadata_id+"&refresh=true";
     });
 
     $("#results-xml").on("click", function(){
         var search_metadata_id = $("div#search-metadata-id").text();
-        location.href = "xml/?rec_id="+search_metadata_id;
+        location.href = "xml/?rec_id="+search_metadata_id+"&refresh=true";
     });
 
     $("#results-link").on("click", function(){

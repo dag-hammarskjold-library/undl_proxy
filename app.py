@@ -71,7 +71,7 @@ def index():
             query = query + "&rg={}".format(records)
 
         # insert or update SearchMetadata
-        search_md, metadata = _update_record_for_url(raw_query, display_fields)
+        search_md, metadata = _update_record_for_url(query, display_fields)
 
         return render_template(
             'result.html',
@@ -166,6 +166,7 @@ def _parse_query(undl_url):
 
 @app.route("/list")
 def list_records():
+    #  TODO: add created and updated dates
     context = {}
     searches = session.query(SearchMetadata).all()
     for search in searches:

@@ -3,8 +3,10 @@
 {% block content %}
 {% for url, id in context.items() %}
 <p> Search: {{ id }} : 
-    <a role="button" class="btn btn-info" href="/xml/?rec_id={{id}}&refresh=true">XML </a>
-    <a role="button" class="btn btn-info" href="/json/?rec_id={{id}}&refresh=true">JSON</a>
+    <a role="button" class="btn btn-info" href="/xml/?rec_id={{id}}">XML </a>
+    <a role="button" class="btn btn-info" href="/json/?rec_id={{id}}">JSON</a>
+    <a role="button" class="btn btn-info" href='/?rec_id={{id}}'>PermaLink</a>
+    <br />
     <small>{{url}}</small>
 </p>
 <br />
