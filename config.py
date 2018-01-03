@@ -15,7 +15,17 @@ class Config(object):
 
     RELDOC_RE = re.compile(r'^([a-zA-Z0-9\/]+)(\(\d{4}\))$')
 
-    DB_URI = 'sqlite:////tmp/undl_url.db'
+    # DB_URI = 'sqlite:////tmp/undl_url.db'
+    POSTGRES_USER = "proxy"
+    POSTGRES_PW = "proxy"
+    POSTGRES_URL = "127.0.0.1:5432"
+    POSTGRES_DB = "proxy"
+    DB_URI = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(
+        user=POSTGRES_USER,
+        pw=POSTGRES_PW,
+        url=POSTGRES_URL,
+        db=POSTGRES_DB
+    )
 
 
 class ProductionConfig(Config):
