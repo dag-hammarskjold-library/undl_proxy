@@ -3,7 +3,7 @@ from .db import get_session
 from .marc_xml import MARCXmlParse
 from .models import SearchMetadata
 from flask import Flask, render_template, request, abort, Response, send_file
-from io import BytesIO
+from io import BytesIO, StringIO
 from logging import getLogger
 from pymarc import marcxml
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, InterfaceError
@@ -13,7 +13,6 @@ import json
 import re
 import ssl
 import csv
-from tempfile import TemporaryFile
 
 session = get_session()
 
@@ -221,32 +220,20 @@ def show_csv():
         if not sm.json:
             abort(500)
         data = json.loads(sm.json)
-        t_file = TemporaryFile(mode='w')
-        # header = []
-        # authority_authors = []
-        # notes = []
-        # related_documents = []
-        # subjects = []
-        # voting_record = []
-        csvwriter = csv.DictWriter(t_file, data[0].keys())
-        for rec in data:
-            csvwriter.writerow(rec)
-            # for elem in rec:
-            #     csvwriter.writerow(rec.keys())
-            #     if elem == 'header':
-            #         header.append(rec['header'])
-            #     elif elem == 'authority_authors':
-            #         authority_authors.append(rec['authority_authors'])
-            #     elif elem == 'notes':
-            #         notes.append(rec['notes'])
-            #     elif elem == 'related_documents':
-            #         related_documents.append(rec['related_documents'].keys())
-            #     elif elem == 'subjects':
-            #         subjects.append(rec['subjects'].keys())
-            #     elif elem == 'voting_record':
-            #         voting_record.append(rec['voting_record'])
+        t_file = StringIO()
+        processed_data = []
+        header = []
+        for item in data:
+            reduced_item = reduce_item("Data", item)
+            header += reduced_item.keys()
+            processed_data.append(reduced_item)
+        header = list(set(header))
+        header.sort()
+        writer = csv.DictWriter(t_file, header, quoting=csv.QUOTE_ALL)
+        writer.writeheader()
+        for row in processed_data:
+            writer.writerow(row)
 
-            #     csvwriter.writerow(rec)
         return t_file
 
     sm = session.query(SearchMetadata).get(int(rec_id))
@@ -259,9 +246,13 @@ def show_csv():
         elif refresh == 'true':
             sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             t_file = write_to_csv(sm)
-            return send_file(t_file,
+            mem = BytesIO()
+            mem.write(t_file.getValue().encode('utf-8'))
+            mem.seek(0)
+            t_file.close()
+            return send_file(mem,
                      attachment_filename="data_{}.csv".format(rec_id),
-                     as_attachment=True)
+                     as_attachment=True, mimetype='text/csv')
         else:
             return "No JSON for record {}".format(rec_id)
     else:
@@ -457,6 +448,37 @@ def _get_marc_metadata_as_xml(collection, fields):
                 vote.text = elem
 
     return prettify(records)
+
+
+def to_string(s):
+    try:
+        return str(s)
+    except:
+        # Change the encoding type if needed
+        return s.encode('utf-8')
+
+
+def reduce_item(key, value):
+    reduced_item = {}
+
+    # Reduction Condition 1
+    if type(value) is list:
+        i = 0
+        for sub_item in value:
+            reduce_item(key + '_' + to_string(i), sub_item)
+            i = i + 1
+
+    # Reduction Condition 2
+    elif type(value) is dict:
+        sub_keys = value.keys()
+        for sub_key in sub_keys:
+            reduce_item(key + '_' + to_string(sub_key), value[sub_key])
+
+    # Base Condition
+    else:
+        reduced_item[to_string(key)] = to_string(value)
+
+    return reduced_item
 
 
 class PageNotFoundException(Exception):
