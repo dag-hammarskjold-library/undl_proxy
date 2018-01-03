@@ -21,6 +21,11 @@ $(document).ready(function() {
         location.href = "xml/?rec_id="+search_metadata_id;
     });
 
+    $("#results-link").on("click", function(){
+        var search_metadata_id = $("div#search-metadata-id").text();
+        location.href = "/?rec_id="+search_metadata_id;
+    });
+
     $("#results-home").on("click", function(){
         location.href = "/";
     });

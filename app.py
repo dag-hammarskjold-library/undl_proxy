@@ -13,12 +13,10 @@ import json
 import re
 import ssl
 
-session = get_session()
+session = get_session()  # sqlalchemy session
 
 app = Flask(__name__)
-
 logger = getLogger(__name__)
-
 app.config.from_object(DevelopmentConfig)
 
 
@@ -55,6 +53,11 @@ def index():
         records = num_records
         metadata = []
         # see if there is an output format -- make sure we're getting MARCXML
+        from urllib.parse import parse_qs
+        res = parse_qs(raw_query)
+        out_format = res.get('of', None)
+        print("Initial Output format: {}".format(out_format))
+        print("initial query: {}".format(raw_query))
         m = re.search(r'of=([a-zA-Z]{2,})', raw_query)
         if m:
             query = re.sub(r'of=([a-zA-Z]{2,})', "of=xm", raw_query)
@@ -68,7 +71,7 @@ def index():
             query = query + "&rg={}".format(records)
 
         # insert or update SearchMetadata
-        search_md, metadata = _update_record_for_url(query, display_fields)
+        search_md, metadata = _update_record_for_url(raw_query, display_fields)
 
         return render_template(
             'result.html',
@@ -110,12 +113,12 @@ def _parse_query(undl_url):
     ctx = {}
     from urllib.parse import parse_qs
     res = parse_qs(undl_url)
-    ctx['pattern'] = res.get('p', None)  # search Pattern
-    ctx['pattern1'] = res.get('p1', None)
+    ctx['search pattern'] = res.get('p', None)  # search Pattern
+    ctx['search pattern1'] = res.get('p1', None)
     ctx['collection'] = res.get('c', None)  # collection list
     ctx['collection1'] = res.get('cc', None)  # collection list
-    ctx['search_field'] = res.get('f', None)  # search field
-    ctx['search_field1'] = res.get('f1', None)  # search field
+    ctx['search field'] = res.get('f', None)  # search field
+    ctx['search field1'] = res.get('f1', None)  # search field
     rg = request.args.get('rg', None)  # records in groups of
     sf = request.args.get('sf', None)  # sort field
     so = request.args.get('so', None)  # sort order
@@ -126,15 +129,15 @@ def _parse_query(undl_url):
     sc = request.args.get('sc', None)  # split by collection
     jrec = request.args.get('jrec', None)  # jump to record
     recid = request.args.get('recid', None)  # record id
-    d1 = request.args.get('d1', None)  # date 1 as YYYY-mm-dd HH:mm:DD
-    d1y = request.args.get('d1y', None)  # date 1 year
-    d1m = request.args.get('d1m', None)  # date 1 month
-    d1d = request.args.get('d1d', None)  # date 1 day
-    d2 = request.args.get('d2', None)  # date 2 as YYYY-mm-dd HH:mm:DD
-    d2y = request.args.get('d2y', None)  # date 2 year
-    d2m = request.args.get('d2m', None)  # date 2 month
-    d2d = request.args.get('d2d', None)  # date 2 day
-    dt = request.args.get('dt', None)  # date type -- c=creation, m=modification
+    ctx['date 1'] = res.get('d1', None)  # date 1 as YYYY-mm-dd HH:mm:DD
+    ctx['date 1 year'] = res.get('d1y', None)  # date 1 year
+    ctx['date 1 mmonth'] = res.get('d1m', None)  # date 1 month
+    ctx['date 1 day'] = res.get('d1d', None)  # date 1 day
+    ctx['date 2'] = res.get('d2', None)  # date 2 as YYYY-mm-dd HH:mm:DD
+    ctx['date 2 year'] = res.get('d2y', None)  # date 2 year
+    ctx['date 2 month'] = res.get('d2m', None)  # date 2 month
+    ctx['date 2 day'] = res.get('d2d', None)  # date 2 day
+    # dt = request.args.get('dt', None)  # date type -- c=creation, m=modification
 
     # print("Url: {}".format(url))
     # logger.info("Pattern: {}".format(p))
@@ -153,17 +156,12 @@ def _parse_query(undl_url):
     logger.info("Split Collection: {}".format(sc))
     logger.info("Jump to Record: {}".format(jrec))
     logger.info("Record ID: {}".format(recid))
-    logger.info("Date 1: {}".format(d1))
-    logger.info("Date 1 year: {}".format(d1y))
-    logger.info("Date 1 month: {}".format(d1m))
-    logger.info("Date 1 day: {}".format(d1d))
-    logger.info("Date 2: {}".format(d2))
-    logger.info("Date 2 year: {}".format(d2y))
-    logger.info("Date 2 month: {}".format(d2m))
-    logger.info("Date 2 day: {}".format(d2d))
-    logger.info("Date Type: {}".format(dt))
 
-    return ctx
+    context = {}
+    for k, v in ctx.items():
+        if v and v is not None:
+            context[k] = v
+    return context
 
 
 @app.route("/list")
@@ -261,8 +259,9 @@ def _fetch_metadata(url):
     else:
         raw_xml = resp.read()
         xml_doc = BytesIO(raw_xml)
-        r = marcxml.parse_xml_to_array(xml_doc, False, 'NFC')
-        return r
+        logger.info(xml_doc)
+        collection = marcxml.parse_xml_to_array(xml_doc, False, 'NFC')
+        return collection
 
 
 def _get_marc_metadata_as_json(record, fields):
