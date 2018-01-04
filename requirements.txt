@@ -30,6 +30,7 @@ python-dateutil==2.6.1
 simplegeneric==0.8.1
 six==1.11.0
 SQLAlchemy==1.1.15
+SQLAlchemy-Utils==0.32.21
 traitlets==4.3.2
 wcwidth==0.1.7
 Werkzeug==0.12.2
