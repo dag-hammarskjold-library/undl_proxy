@@ -52,12 +52,11 @@ def index():
         query = ''
         records = num_records
         metadata = []
-        # see if there is an output format -- make sure we're getting MARCXML
-        from urllib.parse import parse_qs
-        res = parse_qs(raw_query)
-        out_format = res.get('of', None)
-        print("Initial Output format: {}".format(out_format))
-        print("initial query: {}".format(raw_query))
+        # from urllib.parse import parse_qs
+        # res = parse_qs(raw_query)
+        # out_format = res.get('of', None)
+        # print("Initial Output format: {}".format(out_format))
+        # print("initial query: {}".format(raw_query))
         m = re.search(r'of=([a-zA-Z]{2,})', raw_query)
         if m:
             query = re.sub(r'of=([a-zA-Z]{2,})', "of=xm", raw_query)
@@ -107,8 +106,6 @@ def nav():
     return render_template('nav.html')
 
 
-# @app.route('/search', defaults={'path': ''})
-# @app.route('/search/<path:undl_url>')
 def _parse_query(undl_url):
     ctx = {}
     from urllib.parse import parse_qs
@@ -139,13 +136,6 @@ def _parse_query(undl_url):
     ctx['date 2 day'] = res.get('d2d', None)  # date 2 day
     # dt = request.args.get('dt', None)  # date type -- c=creation, m=modification
 
-    # print("Url: {}".format(url))
-    # logger.info("Pattern: {}".format(p))
-    # logger.info("Pattern: {}".format(p1))
-    # logger.info("Collection: {}".format(c))
-    # logger.info("Collection: {}".format(cc))
-    # logger.info("Field: {}".format(f))
-    # logger.info("Field: {}".format(f1))
     logger.info("Records in Group: {}".format(rg))
     logger.info("Sort Field: {}".format(sf))
     logger.info("Sort Order: {}".format(so))
@@ -166,11 +156,17 @@ def _parse_query(undl_url):
 
 @app.route("/list")
 def list_records():
-    #  TODO: add created and updated dates
     context = {}
     searches = session.query(SearchMetadata).all()
     for search in searches:
-        context[search.undl_url] = search.id
+        res = _parse_query(search.undl_url)
+        context[search.undl_url] = {
+            "search_url": search.undl_url,
+            "id": search.id,
+            "created": search.created,
+            "updated": search.updated,
+            "search_keys": res
+        }
 
     return render_template("list.html", context=context)
 
