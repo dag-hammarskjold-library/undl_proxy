@@ -159,13 +159,13 @@ def list_records():
     context = {}
     searches = session.query(SearchMetadata).all()
     for search in searches:
-        res = _parse_query(search.undl_url)
+        # res.append(_parse_query(search.undl_url))
         context[search.undl_url] = {
             "search_url": search.undl_url,
             "id": search.id,
             "created": search.created,
             "updated": search.updated,
-            "search_keys": res
+            "search_keys": _parse_query(search.undl_url)
         }
 
     return render_template("list.html", context=context)

@@ -1,16 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="content">
+<div class="container-fluid"> 
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Home</a>
+        <!-- <ul class="navbar-nav mr-auto">
+        
+        </ul> -->
+    </nav>
+</div>
+<div class="content container-fluid">
     {% for key, val in context.items() %}
     <div class="boxed">
         <p> Search: {{ val.id }} : <small>{{val.search_url}}</small></p>
             <a role="button" class="btn btn-info" href="/xml/?rec_id={{val.id}}">XML </a>
             <a role="button" class="btn btn-info" href="/json/?rec_id={{val.id}}">JSON</a>
             <a role="button" class="btn btn-info" href='/?rec_id={{val.id}}'>PermaLink</a>
+            <ul>
             {% for k, v in val.search_keys.items() %}
-            <p>{{k}}: {{v}}</p>
+                <li>{{k}}: {{v}}</li>
             {% endfor %}
+            </ul>
             <p> Created: {{val.created.strftime('%Y-%m-%d %H:%M:%S')}}</p>
             <p> Updated: {{ val.updated.strftime('%Y-%m-%d %H:%M:%S') }} </p>
             <br />
