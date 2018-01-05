@@ -11,14 +11,24 @@ $(document).ready(function() {
     }
     });
 
-    $("#results-json").on("click", function() {
+    $("#fresh-results-json").on("click", function() {
         var search_metadata_id = $("div#search-metadata-id").text();
         location.href = "json/?rec_id="+search_metadata_id+"&refresh=true";
     });
 
-    $("#results-xml").on("click", function(){
+    $("#results-json").on("click", function() {
+        var search_metadata_id = $("div#search-metadata-id").text();
+        location.href = "json/?rec_id="+search_metadata_id;
+    });
+
+    $("#fresh-results-xml").on("click", function(){
         var search_metadata_id = $("div#search-metadata-id").text();
         location.href = "xml/?rec_id="+search_metadata_id+"&refresh=true";
+    });
+
+    $("#results-xml").on("click", function(){
+        var search_metadata_id = $("div#search-metadata-id").text();
+        location.href = "xml/?rec_id="+search_metadata_id;
     });
 
     $("#results-link").on("click", function(){

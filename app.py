@@ -157,7 +157,7 @@ def _parse_query(undl_url):
 @app.route("/list")
 def list_records():
     context = {}
-    searches = session.query(SearchMetadata).all()
+    searches = session.query(SearchMetadata).order_by(SearchMetadata.id).all()
     for search in searches:
         # res.append(_parse_query(search.undl_url))
         context[search.undl_url] = {
