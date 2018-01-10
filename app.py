@@ -179,7 +179,7 @@ def show_xml():
     if sm:
         if sm.xml and not refresh:
             return Response(sm.xml, mimetype='text/xml')
-        elif refresh == "true":
+        elif refresh.lower() == "true":
             sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             return Response(sm.xml, mimetype='text/xml')
         else:
@@ -196,7 +196,8 @@ def show_json():
     if sm:
         if sm.json and not refresh:
             return Response(sm.json, mimetype='text/json')
-        elif refresh == 'true':
+        elif refresh.lower() == 'true':
+            logger.info("Getting New JSON")
             sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             return Response(sm.json, mimetype='text/json')
         else:
