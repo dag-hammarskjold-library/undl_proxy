@@ -50,7 +50,8 @@ def index():
                 'subjects', 'summary', 'title', 'voting_record'
             ]
         query = ''
-        records = num_records
+        if num_records:
+            records = num_records
         metadata = []
         # from urllib.parse import parse_qs
         # res = parse_qs(raw_query)
@@ -63,9 +64,9 @@ def index():
         else:
             query = raw_query + "&of=xm"
         # check num records in group, set to 10 if not set by user
-        m = re.search(r'rg=\d+', query)
+        m = re.search(r'rg=\d*', query)
         if m:
-            query = re.sub(r'rg=\d+', "rg={}".format(records), query)
+            query = re.sub(r'rg=\d*', "rg={}".format(records), query)
         else:
             query = query + "&rg={}".format(records)
 
