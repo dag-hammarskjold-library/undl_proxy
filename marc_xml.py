@@ -115,6 +115,9 @@ class MARCXmlParse:
         for f in self.record.imprint():
             return f.value()
 
+    def electronic_location(self):
+        return [el for el in self.record.electronic_location()]
+
     def voting_record(self):
         votes = []
         for vote in self.record.voting_record():

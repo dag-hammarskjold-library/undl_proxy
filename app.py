@@ -45,7 +45,7 @@ def index():
         if not display_fields:
             display_fields = [
                 'agenda', 'author',
-                'authority_authors', 'document_symbol', 'imprint', 'notes',
+                'authority_authors', 'document_symbol', 'electronic_location', 'imprint', 'notes',
                 'publisher', 'pubdate', 'pubyear', 'related_documents',
                 'subjects', 'summary', 'title', 'voting_record'
             ]
@@ -282,6 +282,8 @@ def _get_marc_metadata_as_json(record, fields):
         ctx['authority_authors'] = parser.authority_authors()
     if 'document_symbol' in fields:
         ctx['document_symbol'] = parser.document_symbol()
+    if 'electronic_location' in fields:
+        ctx['electronic_location'] = [f.value() for f in parser.electronic_location()]
     if 'imprint' in fields:
         ctx['imprint'] = parser.imprint()
     if 'notes' in fields:
@@ -345,6 +347,11 @@ def _get_marc_metadata_as_xml(collection, fields):
             document_symbol = ET.SubElement(record, "document_symbol")
             document_symbol.text = parser.document_symbol()
 
+        if 'electronic_location' in fields:
+            electronic_location = ET.SubElement(record, 'electronic_location')
+            for data in parser.electronic_location():
+                electronic_location.text = data.value()
+
         if 'imprint' in fields:
             imprint = ET.SubElement(record, "imprint")
             imprint.text = parser.imprint()
@@ -366,6 +373,7 @@ def _get_marc_metadata_as_xml(collection, fields):
         if 'pub_date' in fields:
             pubdate = ET.SubElement(record, 'pubdate')
             pubdate.text = parser.pub_date()
+
         if 'related_documents' in fields:
             related_documents = ET.SubElement(record, 'related_documents')
             for doc in parser.related_documents():
