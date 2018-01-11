@@ -339,8 +339,9 @@ def _get_marc_metadata_as_xml(collection, fields):
             author.text = parser.author()
 
         if 'authority_authors' in fields:
-            authority_authors = ET.SubElement(record, 'authority_authors')
+            authors = ET.SubElement(record, 'authors')
             for auth_data in parser.authority_authors():
+                authority_authors = ET.SubElement(authors, 'authority_author')
                 authority_authors.text = auth_data
 
         if 'document_symbol' in fields:
@@ -348,8 +349,9 @@ def _get_marc_metadata_as_xml(collection, fields):
             document_symbol.text = parser.document_symbol()
 
         if 'electronic_location' in fields:
-            electronic_location = ET.SubElement(record, 'electronic_location')
+            electronic_locations = ET.SubElement(record, 'electronic_locations')
             for data in parser.electronic_location():
+                electronic_location = ET.SubElement(electronic_locations, 'electronic_location')
                 electronic_location.text = data.value()
 
         if 'imprint' in fields:
