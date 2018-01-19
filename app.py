@@ -174,13 +174,13 @@ def list_records():
 
 @app.route("/xml/")
 def show_xml():
-    rec_id = request.args.get('rec_id')
-    refresh = request.args.get('refresh')
+    rec_id = request.args.get('rec_id', None)
+    refresh = request.args.get('refresh', None)
     sm = session.query(SearchMetadata).get(int(rec_id))
     if sm:
         if sm.xml and not refresh:
             return Response(sm.xml, mimetype='text/xml')
-        elif refresh.lower() == "true":
+        elif refresh and refresh.lower() == "true":
             sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             return Response(sm.xml, mimetype='text/xml')
         else:
@@ -191,13 +191,13 @@ def show_xml():
 
 @app.route("/json/")
 def show_json():
-    rec_id = request.args.get('rec_id')
-    refresh = request.args.get('refresh')
+    rec_id = request.args.get('rec_id', None)
+    refresh = request.args.get('refresh', None)
     sm = session.query(SearchMetadata).get(int(rec_id))
     if sm:
         if sm.json and not refresh:
             return Response(sm.json, mimetype='text/json')
-        elif refresh.lower() == 'true':
+        elif refresh and refresh.lower() == 'true':
             logger.info("Getting New JSON")
             sm, _ = _update_record_for_url(sm.undl_url, sm.display_fields.split(','))
             return Response(sm.json, mimetype='text/json')
