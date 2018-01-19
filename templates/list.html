@@ -21,8 +21,12 @@
                 <li>{{k}}: {{v}}</li>
             {% endfor %}
             </ul>
-            <p> Created: {{val.created.strftime('%Y-%m-%d %H:%M:%S')}}</p>
+            {% if val.created %}
+            <p> Created: {{ val.created.strftime('%Y-%m-%d %H:%M:%S')}}</p>
+            {% endif %}
+            {% if val.updated %}
             <p> Updated: {{ val.updated.strftime('%Y-%m-%d %H:%M:%S') }} </p>
+            {% endif %}
             <br />
         </p>
     </div>
