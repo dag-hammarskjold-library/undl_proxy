@@ -116,7 +116,7 @@ new documents may have been published and made available on the UNDL site.
 
 To get the latest data from the UNDL this proxy app offers a `Search Metadata` link that gives
 a button `refresh JSON` and a button `refresh XML`.  Clicking refresh JSON gives a 
-url similar to : http://127.0.0.1:5000/json/?rec_id=36&refresh=true . This
+url similar to : `http://127.0.0.1:5000/json/?rec_id=36&refresh=true` . This
 link will always get the latest results from the UNDL site for the given search.
 
 
