@@ -1,7 +1,7 @@
 # undl_proxy
 Proxy app to UNDL searches
 
-#H1 Motivation
+# H1 Motivation
 
     Users often need to embed metadata from searches performed on the 
     United Nation Digital Library site into their own app, but do
@@ -11,7 +11,7 @@ Proxy app to UNDL searches
     Library and allows the user to choose what metadata fields to
     display in either JSON or XML.
 
-#H2 Typical Use-Case
+# H1 Typical Use-Case
 
     A user goes to the UNDL and enters the following (advanced) search:
     symbol:'2017' AND (title:congo OR title:burundi)
@@ -109,7 +109,7 @@ Security Council resolution 2389 (2017) [on implementation of the Peace, Securit
     present them in a human-readable form.
 
 
-#H1 Keeping data fresh
+# H1 Keeping data fresh
 
     With the example above, a user may want to get the latest voting data.  With any search, 
     new documents may have been published and made available on the UNDL site.
@@ -119,12 +119,12 @@ Security Council resolution 2389 (2017) [on implementation of the Peace, Securit
     url similar to : `http://127.0.0.1:5000/json/?rec_id=36&refresh=true` . This
     link will always get the latest results from the UNDL site for the given search.
 
-#H1 Format of XML
+# H1 Format of XML
     The search response is wrapped in a ```xml <records>``` tag.  Each search item
-    
 
 
-#H1 Setup
+
+# H1 Setup
 
 Install PostgreSQL
 create database "proxy"
