@@ -105,8 +105,8 @@ metadata.
           "9 AUS Y AUSTRALIA",
           . . .
     ```
-    Here, any report or web application that can read JSON can easily parse all the results and 
-    present them in a human-readable form.
+Here, any report or web application that can read JSON can easily parse all the results and 
+present them in a human-readable form.
 
 
 # Keeping data fresh
@@ -155,6 +155,21 @@ The following tags are used:
 <voting_record>
 ```
 
+# Limitations
+
+Right now the Proxy App will fetch a maximum of 100 records.  This is to ensure a timely response.
+If the user needs more than 100 records it is suggested they contact the DHL.
+
+# History Feature
+
+Clicking on the `History` button brings the user to a list of all searches.  From this view
+there is a choice of `XML`, `JSON` and `Details`.
+
+Clicking the `XML` or `JSON` buttons gives the XML or Json metadata for the search.  Clicking 
+`Details` brings the user to a page with some of the info about the search as well as buttons
+to refresh the Xml or JSON.
+
+TBD: add pagination to the history page
 
 # Setup
 
