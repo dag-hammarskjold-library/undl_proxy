@@ -120,8 +120,40 @@ Security Council resolution 2389 (2017) [on implementation of the Peace, Securit
     link will always get the latest results from the UNDL site for the given search.
 
 # H1 Format of XML
-    The search response is wrapped in a ```xml <records>``` tag.  Each search item
+    The search response is wrapped in a <records> tag.  Each search item returned from
+    the UNDL is in a <record> tag.  The user has a choice of what metadata they wish
+    to display.  Suppose they choose only title and related documents, then the XML will be
+    rather simple:
+```xml
+<records>
+    <record>
+    <related_documents>
+        <related_document>S/2016/289</related_document>
+        <related_document>S/PV.7659</related_document>
+    </related_documents>
+    <title>Resolution 2277 (2016) /</title>
+    </record>
+</records>
+```
 
+The following tags are used:
+```xml<agenda>
+<author>
+<authority_authors>
+<document_symbol>
+<imprint>
+<notes>
+<note>
+<publisher>
+<pubyear>
+<related_documents>
+<related_document>
+<subjects>
+<subject>
+<summary>
+<title>
+<voting_record>
+```
 
 
 # H1 Setup
