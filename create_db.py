@@ -7,8 +7,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists
 from flask import Flask
-from config import DevelopmentConfig
-from models import SearchMetadata
+from undl_proxy.config import DevelopmentConfig
+from undl_proxy.models import SearchMetadata
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
