@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container-fluid"> 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">Home</a>
+        <a class="navbar-brand" href="/dev/">Home</a>
         <!-- <ul class="navbar-nav mr-auto">
         
         </ul> -->
@@ -13,9 +13,9 @@
     {% for key, val in context.items() %}
     <div class="boxed">
         <p> Search: {{ val.id }} : <small>{{val.search_url}}</small></p>
-            <a role="button" class="btn btn-info" href="/xml/?rec_id={{val.id}}">XML </a>
-            <a role="button" class="btn btn-info" href="/json/?rec_id={{val.id}}">JSON</a>
-            <a role="button" class="btn btn-info" href='/?rec_id={{val.id}}'>Details</a>
+            <a role="button" class="btn btn-info" href="/dev/xml/?rec_id={{val.id}}">XML </a>
+            <a role="button" class="btn btn-info" href="/dev/json/?rec_id={{val.id}}">JSON</a>
+            <a role="button" class="btn btn-info" href='/dev/?rec_id={{val.id}}'>Details</a>
             <ul>
             {% for k, v in val.search_keys.items() %}
                 <li>{{k}}: {{v}}</li>
