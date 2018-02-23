@@ -183,3 +183,6 @@ pip install -r requirements.txt
 
 python create_db.py -- creates proxy database if it does not already exist
 
+Copy config.py.default to config.py
+
+For deployment purposes, change the host, database name, username, and password values to reflect your actual environment.
