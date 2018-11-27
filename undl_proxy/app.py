@@ -247,7 +247,15 @@ def _fetch_metadata(url):
     parse xml of response and return array of pymarc records
     """
     try:
-        resp = req.urlopen(url, context=ssl._create_unverified_context())
+        r = req.Request (
+            url,
+            data=None,
+            headers={
+                'User-Agent':"Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"
+            }
+            
+        )
+        resp = req.urlopen(r, context=ssl._create_unverified_context())
     except (HTTPError, URLError) as e:
         logger.error("Error: {}".format(e))
         abort(500)
@@ -257,6 +265,7 @@ def _fetch_metadata(url):
         abort(500)
     else:
         raw_xml = resp.read()
+        #print(raw_xml)
         xml_doc = BytesIO(raw_xml)
         logger.info(xml_doc)
         collection = marcxml.parse_xml_to_array(xml_doc, False, 'NFC')
