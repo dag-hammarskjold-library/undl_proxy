@@ -102,3 +102,5 @@ ENV/
 
 # Ignoring the deployable config
 config.py
+
+.vscode
