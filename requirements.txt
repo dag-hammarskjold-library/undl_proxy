@@ -56,7 +56,7 @@ tqdm==4.19.1
 traitlets==4.3.2
 troposphere==2.3.4
 Unidecode==1.0.23
-urllib3==1.24.1
+urllib3==1.24.2
 wcwidth==0.1.7
 Werkzeug==0.15.3
 wsgi-request-logger==0.4.6
