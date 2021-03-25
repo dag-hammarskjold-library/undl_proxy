@@ -44,7 +44,7 @@ Pygments==2.2.0
 git+https://github.com/dag-hammarskjold-library/pymarc.git
 python-dateutil==2.6.1
 python-slugify==1.2.4
-PyYAML==5.1
+PyYAML==5.4
 requests==2.20.1
 s3transfer==0.1.13
 simplegeneric==0.8.1
