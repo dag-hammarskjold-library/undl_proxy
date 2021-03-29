@@ -40,7 +40,7 @@ placebo==0.8.2
 prompt-toolkit==1.0.15
 psycopg2==2.7.3.2
 ptyprocess==0.5.2
-Pygments==2.2.0
+Pygments==2.7.4
 git+https://github.com/dag-hammarskjold-library/pymarc.git
 python-dateutil==2.6.1
 python-slugify==1.2.4
