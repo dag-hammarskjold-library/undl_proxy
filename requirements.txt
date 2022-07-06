@@ -31,7 +31,7 @@ jinja2-time==0.2.0
 jmespath==0.9.3
 kappa==0.6.0
 lambda-packages==0.20.0
-lxml==4.1.1
+lxml==4.9.1
 MarkupSafe==1.0
 parso==0.1.0
 pexpect==4.2.1
